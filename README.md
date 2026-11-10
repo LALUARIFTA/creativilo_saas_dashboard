@@ -106,4 +106,3 @@ git remote add origin https://github.com/LALUARIFTA/creativilo_saas_dashboard.gi
 git push -u origin main
 ```
 
-> File `creativilo_saas_dashboard.html` di root adalah versi monolitik asli (prototype). Template modular aktif memakai `index.html` + `src/`; file lama boleh dihapus bila tidak diperlukan.

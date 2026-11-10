@@ -1,0 +1,38 @@
+* {
+  box-sizing: border-box;
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: radial-gradient(circle at 50% 20%, #f8f5ee 0%, #efe9dc 100%);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #2c322c;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+}
+
+/* Slim Custom Scrollbar for Menu Views + Dropdowns */
+.menu-view::-webkit-scrollbar,
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.menu-view::-webkit-scrollbar-track,
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 8px 0;
+}
+.menu-view::-webkit-scrollbar-thumb,
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: rgba(140, 152, 140, 0.28);
+  border-radius: 999px;
+}
+.menu-view::-webkit-scrollbar-thumb:hover,
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: #6cc61c;
+}

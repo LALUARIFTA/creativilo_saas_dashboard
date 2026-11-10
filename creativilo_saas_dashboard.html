@@ -1,0 +1,2388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Creativilo — Interactive SaaS Dashboard</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Plus Jakarta Sans & Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              lime: '#6cc61c',
+              limeDark: '#56a710',
+              limeSoft: '#eefbe0',
+              limePill: '#76d327',
+              darkPanel: '#313931',
+              darkCard: '#3b443b',
+              darkInner: '#262e26',
+              cream: '#f3efe6',
+              canvas: '#f7f8fa',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at 50% 20%, #f8f5ee 0%, #efe9dc 100%);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #2c322c;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+    }
+
+    /* Outer Tablet/Desktop Bezel */
+    .app-bezel {
+      width: 100%;
+      max-width: 1290px;
+      height: 830px;
+      max-height: 94vh;
+      background: #ffffff;
+      border-radius: 36px;
+      padding: 10px;
+      box-shadow:
+        0 30px 70px -15px rgba(45, 52, 40, 0.16),
+        0 0 0 8px rgba(225, 228, 222, 0.65),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Inner 3-Column Frame */
+    .app-inner {
+      width: 100%;
+      height: 100%;
+      background: #f7f8fa;
+      border-radius: 28px;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Left Sidebar */
+    .sidebar {
+      width: 216px;
+      min-width: 216px;
+      height: 100%;
+      background: #ffffff;
+      border-radius: 26px 20px 20px 26px;
+      box-shadow: 6px 0 24px rgba(0, 0, 0, 0.025);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      z-index: 20;
+      position: relative;
+      padding: 26px 0 22px 0;
+    }
+
+    /* Gliding Active Indicator in Sidebar */
+    .nav-glider {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 42px;
+      background: linear-gradient(90deg, #f3fCE9 0%, #ebfadb 100%);
+      border-right: 4.5px solid #6cc61c;
+      transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.25s ease;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .nav-btn {
+      position: relative;
+      z-index: 2;
+      height: 42px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      padding: 0 28px;
+      gap: 13px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #8c948e;
+      transition: color 0.25s ease, transform 0.2s ease;
+      cursor: pointer;
+      background: transparent;
+      border: none;
+      text-align: left;
+    }
+
+    .nav-btn:hover {
+      color: #4b554d;
+    }
+
+    .nav-btn:hover .nav-icon {
+      transform: scale(1.1);
+    }
+
+    .nav-btn.active {
+      color: #6cc61c;
+      font-weight: 700;
+    }
+
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.25s ease;
+    }
+
+    /* Center Viewport Area (Strict Fixed Size) */
+    .center-column {
+      flex: 1;
+      min-width: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #f7f8fa;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Menu Stage Container - Strict Fixed Dimension */
+    .menu-stage {
+      flex: 1;
+      width: 100%;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Individual Menu View - Exact Same Dimension + Internal Scroll */
+    .menu-view {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: 4px 26px 32px 26px;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(18px) scale(0.985);
+      transition:
+        opacity 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+        visibility 0.36s;
+      pointer-events: none;
+      scroll-behavior: smooth;
+    }
+
+    .menu-view.active-view {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+      z-index: 5;
+    }
+
+    .menu-view.exit-view {
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-16px) scale(0.985);
+      pointer-events: none;
+    }
+
+    /* Staggered Card Animation inside Active View */
+    .menu-view.active-view .stagger-card {
+      animation: cardPopIn 0.52s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    }
+    .menu-view.active-view .stagger-card:nth-child(1) { animation-delay: 0.04s; }
+    .menu-view.active-view .stagger-card:nth-child(2) { animation-delay: 0.10s; }
+    .menu-view.active-view .stagger-card:nth-child(3) { animation-delay: 0.16s; }
+    .menu-view.active-view .stagger-card:nth-child(4) { animation-delay: 0.22s; }
+    .menu-view.active-view .stagger-card:nth-child(5) { animation-delay: 0.28s; }
+
+    @keyframes cardPopIn {
+      0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    /* Slim Custom Scrollbar for Menu Views */
+    .menu-view::-webkit-scrollbar,
+    .custom-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .menu-view::-webkit-scrollbar-track,
+    .custom-scroll::-webkit-scrollbar-track {
+      background: transparent;
+      margin: 8px 0;
+    }
+    .menu-view::-webkit-scrollbar-thumb,
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: rgba(140, 152, 140, 0.28);
+      border-radius: 999px;
+    }
+    .menu-view::-webkit-scrollbar-thumb:hover,
+    .custom-scroll::-webkit-scrollbar-thumb:hover {
+      background: #6cc61c;
+    }
+
+    /* Soft White Card Surface */
+    .dash-card {
+      background: #ffffff;
+      border-radius: 22px;
+      box-shadow: 0 10px 28px -8px rgba(35, 44, 35, 0.045);
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .dash-card:hover {
+      box-shadow: 0 14px 32px -6px rgba(35, 44, 35, 0.075);
+    }
+
+    /* Top Green Hero Banner */
+    .hero-green-banner {
+      background: linear-gradient(135deg, #74cf22 0%, #65be17 100%);
+      border-radius: 24px;
+      padding: 15px;
+      box-shadow: 0 14px 28px -8px rgba(108, 198, 28, 0.35);
+    }
+
+    .kpi-subcard {
+      background: rgba(77, 152, 13, 0.68);
+      border-radius: 17px;
+      padding: 14px 16px;
+      color: #ffffff;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.25s ease, background 0.25s ease;
+      cursor: pointer;
+    }
+    .kpi-subcard:hover {
+      transform: translateY(-2px);
+      background: rgba(70, 142, 10, 0.82);
+    }
+
+    /* SVG Line Draw Animation */
+    .draw-path {
+      stroke-dasharray: 600;
+      stroke-dashoffset: 600;
+      animation: drawStroke 1.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+    @keyframes drawStroke {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    /* Neumorphic Ring Shadow for Customers Gauge */
+    .customer-gauge-ring {
+      width: 152px;
+      height: 152px;
+      border-radius: 9999px;
+      background: #ffffff;
+      box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.07),
+        inset 0 2px 6px rgba(0, 0, 0, 0.04);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Right Dark Profile Panel */
+    .right-panel {
+      width: 292px;
+      min-width: 292px;
+      height: 100%;
+      background: #313931;
+      border-radius: 26px;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 18px 18px 18px;
+      position: relative;
+      z-index: 20;
+      box-shadow: -6px 0 24px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Pulse Red Dot */
+    .pulse-dot {
+      position: relative;
+    }
+    .pulse-dot::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 999px;
+      background: #ef4444;
+      opacity: 0.55;
+      animation: pingDot 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+    }
+    @keyframes pingDot {
+      75%, 100% {
+        transform: scale(2.1);
+        opacity: 0;
+      }
+    }
+
+    /* Scroll Indicator Bar */
+    .scroll-progress-bar {
+      height: 2.5px;
+      background: linear-gradient(90deg, #6cc61c, #9ef048);
+      width: 0%;
+      transition: width 0.12s ease-out;
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* Responsive Adjustments for Smaller Screens */
+    @media (max-width: 1120px) {
+      .right-panel {
+        display: none;
+      }
+    }
+    @media (max-width: 768px) {
+      .app-bezel {
+        height: 100vh;
+        max-height: 100vh;
+        border-radius: 0;
+        padding: 0;
+      }
+      .app-inner {
+        border-radius: 0;
+      }
+      .sidebar {
+        width: 72px;
+        min-width: 72px;
+      }
+      .sidebar-text, .sidebar-section-label, .sidebar-footer {
+        display: none;
+      }
+      .nav-btn {
+        justify-content: center;
+        padding: 0;
+      }
+    }
+  </style>
+</head>
+<body class="p-0 sm:p-4 md:p-6">
+
+  <!-- OUTER WHITE TABLET/DESKTOP BEZEL -->
+  <div class="app-bezel">
+    <div class="app-inner">
+
+      <!-- =====================================================
+           1. LEFT SIDEBAR (Fixed Width, Animated Glider)
+           ===================================================== -->
+      <aside class="sidebar">
+        <div>
+          <!-- Brand Logo -->
+          <div class="px-7 mb-7 flex items-center gap-2.5 cursor-pointer group" onclick="switchMenu('dashboard')">
+            <div class="w-7 h-7 rounded-[7px] bg-brand-lime flex items-center justify-center shadow-sm group-hover:rotate-6 transition-transform">
+              <div class="w-3.5 h-3.5 border-[2.5px] border-white rounded-[3px] relative">
+                <div class="w-1.5 h-1.5 bg-brand-lime absolute -right-1 top-0.5"></div>
+              </div>
+            </div>
+            <span class="sidebar-text font-extrabold text-[16.5px] tracking-tight text-[#2b332b]">Creativilo</span>
+          </div>
+
+          <!-- Navigation Wrapper (Relative for Gliding Active Pill) -->
+          <div class="relative" id="sidebarNavContainer">
+            <!-- Animated Gliding Highlight Bar -->
+            <div id="navGlider" class="nav-glider" style="transform: translateY(28px);"></div>
+
+            <!-- Group: Overview -->
+            <div class="sidebar-section-label px-7 mb-1.5 text-[12px] font-bold text-[#3a423b] tracking-tight">Overview</div>
+            <nav class="flex flex-col" id="overviewNav">
+              <button class="nav-btn active" data-menu="dashboard" onclick="switchMenu('dashboard')">
+                <span class="nav-icon"><i class="fa-solid fa-table-cells-large"></i></span>
+                <span class="sidebar-text">Dashboard</span>
+              </button>
+              <button class="nav-btn" data-menu="projects" onclick="switchMenu('projects')">
+                <span class="nav-icon"><i class="fa-solid fa-clipboard-list"></i></span>
+                <span class="sidebar-text">Projects</span>
+              </button>
+              <button class="nav-btn" data-menu="analytics" onclick="switchMenu('analytics')">
+                <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+                <span class="sidebar-text">Analytics</span>
+              </button>
+              <button class="nav-btn" data-menu="reports" onclick="switchMenu('reports')">
+                <span class="nav-icon"><i class="fa-solid fa-file-invoice"></i></span>
+                <span class="sidebar-text">Reports</span>
+              </button>
+            </nav>
+
+            <!-- Group: Business -->
+            <div class="sidebar-section-label px-7 mt-6 mb-1.5 text-[12px] font-bold text-[#3a423b] tracking-tight">Business</div>
+            <nav class="flex flex-col" id="businessNav">
+              <button class="nav-btn" data-menu="store" onclick="switchMenu('store')">
+                <span class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></span>
+                <span class="sidebar-text">Store</span>
+              </button>
+              <button class="nav-btn" data-menu="outlet" onclick="switchMenu('outlet')">
+                <span class="nav-icon"><i class="fa-solid fa-shop"></i></span>
+                <span class="sidebar-text">Outlet</span>
+              </button>
+              <button class="nav-btn" data-menu="products" onclick="switchMenu('products')">
+                <span class="nav-icon"><i class="fa-solid fa-box-archive"></i></span>
+                <span class="sidebar-text">Products</span>
+              </button>
+              <button class="nav-btn" data-menu="chat" onclick="switchMenu('chat')">
+                <span class="nav-icon"><i class="fa-solid fa-comment-dots"></i></span>
+                <span class="sidebar-text flex items-center gap-1.5">
+                  Chat
+                  <span id="chatUnreadDot" class="w-1.5 h-1.5 rounded-full bg-red-500 pulse-dot inline-block -mt-1.5"></span>
+                </span>
+              </button>
+              <button class="nav-btn" data-menu="logout" onclick="switchMenu('logout')">
+                <span class="nav-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
+                <span class="sidebar-text">Log Out</span>
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Bottom Copyright Footer -->
+        <div class="sidebar-footer px-7 text-[11px] font-medium text-[#b0b7b0]">
+          @ARSoft.com 2022
+        </div>
+      </aside>
+
+      <!-- =====================================================
+           2. CENTER MAIN COLUMN (Fixed Size + Internal Scroll)
+           ===================================================== -->
+      <main class="center-column">
+
+        <!-- Sticky Top Header (Never jumps, stays aligned across all menus) -->
+        <header class="px-[26px] pt-[24px] pb-[14px] flex flex-wrap items-center justify-between gap-4 shrink-0 z-10 bg-[#f7f8fa]/90 backdrop-blur-sm">
+          <div>
+            <div class="flex items-center gap-2.5">
+              <h1 id="headerTitle" class="text-[22px] font-extrabold text-[#2b332b] tracking-tight leading-tight transition-all duration-200">
+                Dashboard
+              </h1>
+              <span id="scrollBadge" class="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#eaf8d9] text-[#5cb312]">
+                <i class="fa-solid fa-arrows-up-down text-[9px]"></i> Scrollable View
+              </span>
+            </div>
+            <p id="headerSubtitle" class="text-[11.5px] font-medium text-[#a3aba3] mt-0.5 transition-all duration-200">
+              All dwtails about your selling products are here..
+            </p>
+          </div>
+
+          <!-- Search Input Box -->
+          <div class="relative w-56 sm:w-64">
+            <input
+              id="globalSearchInput"
+              type="text"
+              placeholder="Search"
+              oninput="handleGlobalSearch(this.value)"
+              class="w-full h-[38px] pl-4 pr-9 rounded-xl bg-white text-[12px] font-medium text-[#3b423b] placeholder-[#b6bdb6] shadow-[0_4px_16px_rgba(0,0,0,0.03)] focus:outline-none focus:ring-2 focus:ring-brand-lime/40 transition"
+            />
+            <i class="fa-solid fa-magnifying-glass absolute right-3.5 top-1/2 -translate-y-1/2 text-[#a3aba3] text-[12px]"></i>
+
+            <!-- Instant Search Popover -->
+            <div id="searchDropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-xl border border-gray-100 p-2.5 z-50">
+              <div class="text-[10px] font-bold uppercase tracking-wider text-gray-400 px-2 py-1">Quick Jump & Search</div>
+              <div id="searchResultsList" class="max-h-52 overflow-y-auto custom-scroll divide-y divide-gray-50"></div>
+            </div>
+          </div>
+        </header>
+
+        <!-- Scroll Progress Indicator Bar -->
+        <div class="w-full h-[2.5px] bg-transparent shrink-0 px-[26px]">
+          <div id="scrollProgressBar" class="scroll-progress-bar"></div>
+        </div>
+
+        <!-- =====================================================
+             FIXED-SIZE MENU STAGE (All 9 Menus Have Exact Same Box)
+             ===================================================== -->
+        <div class="menu-stage" id="menuStage">
+
+          <!-- ***************************************************
+               MENU 1: DASHBOARD (Exact Reference + Scrollable)
+               *************************************************** -->
+          <section class="menu-view active-view" id="view-dashboard" onscroll="updateScrollProgress(this)">
+
+            <!-- 1. TOP LIME GREEN KPI BANNER -->
+            <div class="hero-green-banner stagger-card mb-5">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+
+                <!-- KPI 1: Total Visits -->
+                <div class="kpi-subcard" onclick="showToast('Total Visits grew by +12.05% compared to last week!')">
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <p class="text-[11px] font-semibold text-white/90">Total Visits</p>
+                      <h3 class="text-[18px] font-extrabold tracking-tight mt-0.5 count-up" data-target="49.259" data-decimals="3">49.259</h3>
+                      <div class="flex items-center gap-1.5 mt-2">
+                        <span class="w-4 h-4 rounded-[5px] bg-white flex items-center justify-center text-[#56a710] text-[9px]">
+                          <i class="fa-solid fa-arrow-trend-up"></i>
+                        </span>
+                        <span class="text-[10px] font-semibold text-white/95">+12.05%</span>
+                      </div>
+                    </div>
+                    <!-- Mini Wave Sparkline SVG -->
+                    <div class="w-[82px] h-[48px] mt-3">
+                      <svg viewBox="0 0 90 48" class="w-full h-full overflow-visible">
+                        <defs>
+                          <linearGradient id="sparkGrad1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.38"/>
+                            <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0"/>
+                          </linearGradient>
+                        </defs>
+                        <path d="M2,42 C10,42 12,33 18,33 C24,33 27,39 33,39 C39,39 43,10 50,10 C56,10 59,34 65,34 C71,34 73,21 78,21 C83,21 85,31 89,23 L89,45 L2,45 Z" fill="url(#sparkGrad1)"/>
+                        <path class="draw-path" d="M2,42 C10,42 12,33 18,33 C24,33 27,39 33,39 C39,39 43,10 50,10 C56,10 59,34 65,34 C71,34 73,21 78,21 C83,21 85,31 89,23" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- KPI 2: Bounce Rate -->
+                <div class="kpi-subcard" onclick="showToast('Bounce Rate is healthy at 21.4% (+5.19% improvement)')">
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <p class="text-[11px] font-semibold text-white/90">Bounce Rate</p>
+                      <h3 class="text-[18px] font-extrabold tracking-tight mt-0.5 count-up" data-target="21.4" data-decimals="1">21.4</h3>
+                      <div class="flex items-center gap-1.5 mt-2">
+                        <span class="w-4 h-4 rounded-[5px] bg-white flex items-center justify-center text-[#56a710] text-[9px]">
+                          <i class="fa-solid fa-arrow-trend-up"></i>
+                        </span>
+                        <span class="text-[10px] font-semibold text-white/95">+5.19%</span>
+                      </div>
+                    </div>
+                    <!-- Mini Wave Sparkline SVG -->
+                    <div class="w-[82px] h-[48px] mt-3">
+                      <svg viewBox="0 0 90 48" class="w-full h-full overflow-visible">
+                        <path d="M2,42 C10,42 12,33 18,33 C24,33 27,39 33,39 C39,39 43,10 50,10 C56,10 59,34 65,34 C71,34 73,21 78,21 C83,21 85,31 89,23 L89,45 L2,45 Z" fill="url(#sparkGrad1)"/>
+                        <path class="draw-path" d="M2,42 C10,42 12,33 18,33 C24,33 27,39 33,39 C39,39 43,10 50,10 C56,10 59,34 65,34 C71,34 73,21 78,21 C83,21 85,31 89,23" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- KPI 3: Realtime Users -->
+                <div class="kpi-subcard" onclick="showToast('9,221 Realtime Users currently active on Creativilo')">
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <p class="text-[11px] font-semibold text-white/90">Realtime Users</p>
+                      <h3 class="text-[18px] font-extrabold tracking-tight mt-0.5 count-up" data-target="9.221" data-decimals="3">9.221</h3>
+                      <div class="flex items-center gap-1.5 mt-2">
+                        <span class="w-4 h-4 rounded-[5px] bg-white flex items-center justify-center text-[#56a710] text-[9px]">
+                          <i class="fa-solid fa-arrow-trend-up"></i>
+                        </span>
+                        <span class="text-[10px] font-semibold text-white/95">+22.01%</span>
+                      </div>
+                    </div>
+                    <!-- Mini Wave Sparkline SVG -->
+                    <div class="w-[82px] h-[48px] mt-3">
+                      <svg viewBox="0 0 90 48" class="w-full h-full overflow-visible">
+                        <path d="M2,42 C10,42 12,33 18,33 C24,33 27,39 33,39 C39,39 43,10 50,10 C56,10 59,34 65,34 C71,34 73,21 78,21 C83,21 85,31 89,23 L89,45 L2,45 Z" fill="url(#sparkGrad1)"/>
+                        <path class="draw-path" d="M2,42 C10,42 12,33 18,33 C24,33 27,39 33,39 C39,39 43,10 50,10 C56,10 59,34 65,34 C71,34 73,21 78,21 C83,21 85,31 89,23" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- 2. MIDDLE ROW: REVENUE CHART + CUSTOMERS GAUGE -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 stagger-card mb-5">
+
+              <!-- Revenue Smooth Curve Card (7 cols) -->
+              <div class="dash-card lg:col-span-7 p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-3">
+                  <h2 class="text-[15px] font-bold text-[#2b332b]">Revenue</h2>
+                  <div class="flex items-center gap-3 text-[10.5px] font-semibold">
+                    <button onclick="toggleRevenueSeries('thisWeek')" class="flex items-center gap-1.5 text-[#6cc61c] hover:opacity-80 transition">
+                      <span class="w-1.5 h-1.5 rounded-full bg-[#6cc61c]"></span>
+                      This week
+                    </button>
+                    <button onclick="toggleRevenueSeries('lastWeek')" class="flex items-center gap-1.5 text-[#f6c343] hover:opacity-80 transition">
+                      <span class="w-1.5 h-1.5 rounded-full bg-[#f6c343]"></span>
+                      Last week
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Interactive SVG Chart Area -->
+                <div class="relative flex items-center gap-2 pt-2">
+                  <!-- Y-Axis Labels -->
+                  <div class="flex flex-col justify-between h-[155px] text-[10px] font-medium text-[#b0b7b0] pr-1 pb-5 select-none">
+                    <span>50K</span>
+                    <span>40K</span>
+                    <span>30K</span>
+                    <span>20K</span>
+                    <span>10K</span>
+                    <span>0</span>
+                  </div>
+
+                  <!-- SVG Curve Canvas -->
+                  <div class="flex-1 relative h-[160px]">
+                    <svg id="revenueSvg" viewBox="0 0 340 135" class="w-full h-[135px] overflow-visible">
+                      <defs>
+                        <linearGradient id="wedBarGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stop-color="#6cc61c" stop-opacity="0.24"/>
+                          <stop offset="100%" stop-color="#6cc61c" stop-opacity="0.06"/>
+                        </linearGradient>
+                        <filter id="lineShadow" x="-10%" y="-10%" width="120%" height="130%">
+                          <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#6cc61c" flood-opacity="0.22"/>
+                        </filter>
+                      </defs>
+
+                      <!-- Subtle horizontal guide lines -->
+                      <line x1="0" y1="15" x2="335" y2="15" stroke="#f3f4f6" stroke-width="1"/>
+                      <line x1="0" y1="42" x2="335" y2="42" stroke="#f3f4f6" stroke-width="1"/>
+                      <line x1="0" y1="69" x2="335" y2="69" stroke="#f3f4f6" stroke-width="1"/>
+                      <line x1="0" y1="96" x2="335" y2="96" stroke="#f3f4f6" stroke-width="1"/>
+                      <line x1="0" y1="123" x2="335" y2="123" stroke="#f3f4f6" stroke-width="1"/>
+
+                      <!-- Highlight Vertical Shaded Column (Moves on Hover!) -->
+                      <rect id="revHighlightBar" x="155" y="55" width="26" height="70" rx="6" fill="url(#wedBarGrad)" class="transition-all duration-300"/>
+                      <line id="revHighlightLine" x1="168" y1="55" x2="168" y2="125" stroke="#6cc61c" stroke-width="1" stroke-dasharray="2 2" stroke-opacity="0.5" class="transition-all duration-300"/>
+
+                      <!-- Last Week Curve (Soft Yellow/Green) -->
+                      <path id="lastWeekPath" d="M 10,95 C 40,97 65,118 92,112 C 118,106 135,59 168,61 C 198,63 205,76 225,73 C 248,70 258,42 280,45 C 302,48 312,86 332,68"
+                        fill="none" stroke="#dce775" stroke-width="2" stroke-linecap="round" opacity="0.75"/>
+
+                      <!-- This Week Curve (Vibrant Lime Green) -->
+                      <path id="thisWeekPath" class="draw-path" filter="url(#lineShadow)"
+                        d="M 10,92 C 42,93 66,115 92,110 C 120,104 134,54 168,55 C 198,56 205,72 225,69 C 248,66 258,38 280,41 C 302,44 312,83 332,64"
+                        fill="none" stroke="#6cc61c" stroke-width="2.5" stroke-linecap="round"/>
+
+                      <!-- Active Data Point Circle -->
+                      <circle id="revActiveDot" cx="168" cy="55" r="4.5" fill="#ffffff" stroke="#6cc61c" stroke-width="2.5" class="transition-all duration-300"/>
+                    </svg>
+
+                    <!-- Floating Green Tooltip Pill ($28.2K) -->
+                    <div id="revTooltipPill" style="left: 49.5%; top: 14px;" class="absolute -translate-x-1/2 bg-[#76d327] text-white text-[10.5px] font-bold px-3 py-1 rounded-lg shadow-[0_6px_14px_rgba(108,198,28,0.38)] transition-all duration-300 pointer-events-none">
+                      $28.2K
+                    </div>
+
+                    <!-- X-Axis Interactive Days -->
+                    <div class="grid grid-cols-7 text-center text-[10.5px] font-medium text-[#9ca39c] mt-1">
+                      <button onmouseenter="scrubRevenue(0, 'Sun', '$14.8K', 12, 92)" class="hover:text-[#6cc61c] transition py-0.5">Sun</button>
+                      <button onmouseenter="scrubRevenue(1, 'Mon', '$11.4K', 64, 104)" class="hover:text-[#6cc61c] transition py-0.5">Mon</button>
+                      <button onmouseenter="scrubRevenue(2, 'Tue', '$18.9K', 116, 86)" class="hover:text-[#6cc61c] transition py-0.5">Tue</button>
+                      <button onmouseenter="scrubRevenue(3, 'Wed', '$28.2K', 168, 55)" class="text-[#2b332b] font-bold hover:text-[#6cc61c] transition py-0.5">Wed</button>
+                      <button onmouseenter="scrubRevenue(4, 'Thu', '$24.6K', 225, 69)" class="hover:text-[#6cc61c] transition py-0.5">Thu</button>
+                      <button onmouseenter="scrubRevenue(5, 'Fri', '$34.1K', 280, 41)" class="hover:text-[#6cc61c] transition py-0.5">Fri</button>
+                      <button onmouseenter="scrubRevenue(6, 'Sat', '$26.5K', 330, 64)" class="hover:text-[#6cc61c] transition py-0.5">Sat</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Customers Circular Gauge Card (5 cols) -->
+              <div class="dash-card lg:col-span-5 p-5 flex flex-col justify-between items-center">
+                <div class="w-full flex items-center justify-between">
+                  <h2 class="text-[15px] font-bold text-[#2b332b]">Customers</h2>
+                  <button onclick="randomizeCustomerGauge()" title="Refresh Gauge" class="text-[11px] text-[#a3aba3] hover:text-brand-lime transition">
+                    <i class="fa-solid fa-rotate"></i>
+                  </button>
+                </div>
+
+                <!-- Neumorphic Multi-Arc Donut Gauge -->
+                <div class="my-2 customer-gauge-ring cursor-pointer" onclick="randomizeCustomerGauge()">
+                  <svg viewBox="0 0 140 140" class="w-[138px] h-[138px] -rotate-90">
+                    <!-- Soft Background Track -->
+                    <circle cx="70" cy="70" r="54" fill="none" stroke="#f1f3f1" stroke-width="11"/>
+
+                    <!-- Segment 1: Orange/Yellow Arc (Top-Right to Bottom-Right) -->
+                    <circle id="gaugeArcYellow" cx="70" cy="70" r="54" fill="none" stroke="#f7b928" stroke-width="10.5"
+                      stroke-dasharray="105 340" stroke-dashoffset="-18" stroke-linecap="round" class="transition-all duration-700"/>
+
+                    <!-- Segment 2: Lime Green Arc (Bottom) -->
+                    <circle id="gaugeArcGreenBottom" cx="70" cy="70" r="54" fill="none" stroke="#6cc61c" stroke-width="10.5"
+                      stroke-dasharray="62 340" stroke-dashoffset="-142" stroke-linecap="round" class="transition-all duration-700"/>
+
+                    <!-- Segment 3: Dark Charcoal Arc (Bottom-Left) -->
+                    <circle cx="70" cy="70" r="54" fill="none" stroke="#313931" stroke-width="10.5"
+                      stroke-dasharray="24 340" stroke-dashoffset="-220" stroke-linecap="round"/>
+
+                    <!-- Segment 4: Lime Green Arc (Left) -->
+                    <circle id="gaugeArcGreenLeft" cx="70" cy="70" r="54" fill="none" stroke="#6cc61c" stroke-width="10.5"
+                      stroke-dasharray="55 340" stroke-dashoffset="-256" stroke-linecap="round" class="transition-all duration-700"/>
+
+                    <!-- Segment 5: Dark Charcoal Arc (Top-Left) -->
+                    <circle cx="70" cy="70" r="54" fill="none" stroke="#313931" stroke-width="10.5"
+                      stroke-dasharray="28 340" stroke-dashoffset="-324" stroke-linecap="round"/>
+                  </svg>
+
+                  <!-- Center Label -->
+                  <div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span id="customerTotalPct" class="text-[20px] font-extrabold text-[#2b332b] leading-none">37%</span>
+                    <span class="text-[11px] font-medium text-[#9ca39c] mt-1">Total</span>
+                  </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="flex flex-col items-center gap-1 text-[10.5px] font-medium text-[#9ca39c]">
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#6cc61c]"></span>
+                    <span>Current Customers</span>
+                  </div>
+                  <div class="flex items-center gap-1.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#f7b928]"></span>
+                    <span>New Customers</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- 3. RECENT TRANSACTION CARD (Exact Reference Rows + Interactive Filter) -->
+            <div class="dash-card p-5 stagger-card mb-5">
+              <div class="flex items-center justify-between mb-3.5">
+                <h2 class="text-[15px] font-bold text-[#2b332b]">Recent Transaction</h2>
+                <button onclick="toggleAllTransactions()" id="viewAllTxBtn" class="text-[11px] font-bold text-[#5a635a] hover:text-brand-lime transition">
+                  View All
+                </button>
+              </div>
+
+              <!-- Table Header -->
+              <div class="grid grid-cols-12 text-[11px] font-semibold text-[#a3aba3] pb-2.5 border-b border-gray-100">
+                <div class="col-span-4">Transaction ID</div>
+                <div class="col-span-4">Date</div>
+                <div class="col-span-2">Amount</div>
+                <div class="col-span-2 text-right pr-2">Status</div>
+              </div>
+
+              <!-- Transaction Rows -->
+              <div class="divide-y divide-gray-50 text-[12px]" id="dashboardTxContainer">
+                <!-- Row 1 -->
+                <div class="grid grid-cols-12 items-center py-3 hover:bg-gray-50/70 rounded-xl px-1 transition cursor-pointer" onclick="showToast('Transaction #2020912 — Pending Verification (-$299,89)')">
+                  <div class="col-span-4 flex items-center gap-2.5 font-bold text-[#3b423b]">
+                    <span class="w-6 h-6 rounded-lg bg-[#fff8e6] text-[#f5b025] flex items-center justify-center text-[10px]">
+                      <i class="fa-solid fa-arrow-up"></i>
+                    </span>
+                    #2020912
+                  </div>
+                  <div class="col-span-4 text-[11.5px] font-medium text-[#a3aba3]">Apr 29, 2022, 11:37</div>
+                  <div class="col-span-2 font-bold text-[#3b423b]">-$299,89</div>
+                  <div class="col-span-2 flex justify-end">
+                    <span class="px-3 py-1 rounded-lg bg-[#fef9ec] text-[#f3b738] text-[10px] font-bold">Pending</span>
+                  </div>
+                </div>
+
+                <!-- Row 2 -->
+                <div class="grid grid-cols-12 items-center py-3 hover:bg-gray-50/70 rounded-xl px-1 transition cursor-pointer" onclick="showToast('Transaction #2020911 — Completed (-$130,15)')">
+                  <div class="col-span-4 flex items-center gap-2.5 font-bold text-[#3b423b]">
+                    <span class="w-6 h-6 rounded-lg bg-[#effbe3] text-[#6cc61c] flex items-center justify-center text-[10px]">
+                      <i class="fa-solid fa-arrow-up"></i>
+                    </span>
+                    #2020911
+                  </div>
+                  <div class="col-span-4 text-[11.5px] font-medium text-[#a3aba3]">Apr 29, 2022, 11:37</div>
+                  <div class="col-span-2 font-bold text-[#3b423b]">-$130,15</div>
+                  <div class="col-span-2 flex justify-end">
+                    <span class="px-3 py-1 rounded-lg bg-[#effbe3] text-[#6cc61c] text-[10px] font-bold">Completed</span>
+                  </div>
+                </div>
+
+                <!-- Row 3 -->
+                <div class="grid grid-cols-12 items-center py-3 hover:bg-gray-50/70 rounded-xl px-1 transition cursor-pointer" onclick="showToast('Transaction #2020910 — Scheduled (-$458,13)')">
+                  <div class="col-span-4 flex items-center gap-2.5 font-bold text-[#3b423b]">
+                    <span class="w-6 h-6 rounded-lg bg-[#e6fbf6] text-[#28b89b] flex items-center justify-center text-[10px]">
+                      <i class="fa-solid fa-arrow-up"></i>
+                    </span>
+                    #2020910
+                  </div>
+                  <div class="col-span-4 text-[11.5px] font-medium text-[#a3aba3]">Apr 29, 2022, 11:36</div>
+                  <div class="col-span-2 font-bold text-[#3b423b]">-$458,13</div>
+                  <div class="col-span-2 flex justify-end">
+                    <span class="px-3 py-1 rounded-lg bg-[#e8fbf7] text-[#33bca0] text-[10px] font-bold">Scheduled</span>
+                  </div>
+                </div>
+
+                <!-- Row 4 -->
+                <div class="grid grid-cols-12 items-center py-3 hover:bg-gray-50/70 rounded-xl px-1 transition cursor-pointer" onclick="showToast('Transaction #2020909 — Completed (-$210,99)')">
+                  <div class="col-span-4 flex items-center gap-2.5 font-bold text-[#3b423b]">
+                    <span class="w-6 h-6 rounded-lg bg-[#effbe3] text-[#6cc61c] flex items-center justify-center text-[10px]">
+                      <i class="fa-solid fa-arrow-up"></i>
+                    </span>
+                    #2020909
+                  </div>
+                  <div class="col-span-4 text-[11.5px] font-medium text-[#a3aba3]">Apr 29, 2022, 11:36</div>
+                  <div class="col-span-2 font-bold text-[#3b423b]">-$210,99</div>
+                  <div class="col-span-2 flex justify-end">
+                    <span class="px-3 py-1 rounded-lg bg-[#effbe3] text-[#6cc61c] text-[10px] font-bold">Completed</span>
+                  </div>
+                </div>
+
+                <!-- Extra Hidden Rows (Revealed on View All or Scroll) -->
+                <div class="extra-tx hidden grid grid-cols-12 items-center py-3 hover:bg-gray-50/70 rounded-xl px-1 transition">
+                  <div class="col-span-4 flex items-center gap-2.5 font-bold text-[#3b423b]">
+                    <span class="w-6 h-6 rounded-lg bg-[#effbe3] text-[#6cc61c] flex items-center justify-center text-[10px]">
+                      <i class="fa-solid fa-arrow-up"></i>
+                    </span>
+                    #2020908
+                  </div>
+                  <div class="col-span-4 text-[11.5px] font-medium text-[#a3aba3]">Apr 28, 2022, 19:14</div>
+                  <div class="col-span-2 font-bold text-[#3b423b]">+$840,00</div>
+                  <div class="col-span-2 flex justify-end">
+                    <span class="px-3 py-1 rounded-lg bg-[#effbe3] text-[#6cc61c] text-[10px] font-bold">Completed</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. EXTENDED SCROLLABLE SECTION ON DASHBOARD (So Dashboard also demonstrates smooth scrolling) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 stagger-card">
+              <!-- Top Selling Products Mini Card -->
+              <div class="dash-card p-5">
+                <div class="flex items-center justify-between mb-3">
+                  <h3 class="text-[14px] font-bold text-[#2b332b]">Top Selling Products</h3>
+                  <span class="text-[10.5px] font-bold text-brand-lime bg-brand-limeSoft px-2.5 py-0.5 rounded-full">Live Rank</span>
+                </div>
+                <div class="space-y-3">
+                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#f8faf7]">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-xl bg-[#eaf8d9] text-[#6cc61c] flex items-center justify-center font-bold text-sm">
+                        <i class="fa-solid fa-headphones"></i>
+                      </div>
+                      <div>
+                        <p class="text-[12px] font-bold text-[#2b332b]">AirPulse Pro Max</p>
+                        <p class="text-[10.5px] text-gray-400">1,420 units sold</p>
+                      </div>
+                    </div>
+                    <span class="text-[12px] font-extrabold text-[#6cc61c]">$42,600</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#f8faf7]">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-xl bg-[#fff6e0] text-[#f5b025] flex items-center justify-center font-bold text-sm">
+                        <i class="fa-solid fa-clock"></i>
+                      </div>
+                      <div>
+                        <p class="text-[12px] font-bold text-[#2b332b]">Chrono Smart Watch S8</p>
+                        <p class="text-[10.5px] text-gray-400">980 units sold</p>
+                      </div>
+                    </div>
+                    <span class="text-[12px] font-extrabold text-[#2b332b]">$29,400</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Store Goal Progress -->
+              <div class="dash-card p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between mb-2">
+                  <h3 class="text-[14px] font-bold text-[#2b332b]">Quarterly Sales Target</h3>
+                  <span class="text-[11px] font-bold text-[#6cc61c]">84% Reached</span>
+                </div>
+                <p class="text-[11.5px] text-gray-400 mb-3">You are $18,400 away from unlocking the Q2 Super Seller Bonus tier.</p>
+                <div class="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden mb-3">
+                  <div class="h-full bg-gradient-to-r from-[#6cc61c] to-[#9be84e] rounded-full" style="width: 84%"></div>
+                </div>
+                <div class="flex items-center justify-between text-[11px] font-semibold text-gray-500">
+                  <span>Current: <strong class="text-[#2b332b]">$95,000</strong></span>
+                  <span>Goal: <strong class="text-[#2b332b]">$113,400</strong></span>
+                </div>
+              </div>
+            </div>
+
+          </section>
+
+          <!-- ***************************************************
+               MENU 2: PROJECTS (Scrollable Sprint & Project Hub)
+               *************************************************** -->
+          <section class="menu-view" id="view-projects" onscroll="updateScrollProgress(this)">
+            <!-- Top KPI Row -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5 stagger-card">
+              <div class="dash-card p-4 border-l-4 border-[#6cc61c]">
+                <p class="text-[11px] font-semibold text-gray-400">Active Projects</p>
+                <h3 class="text-[20px] font-extrabold text-[#2b332b] mt-0.5">18</h3>
+                <span class="text-[10px] font-bold text-[#6cc61c]">+4 this month</span>
+              </div>
+              <div class="dash-card p-4 border-l-4 border-[#f7b928]">
+                <p class="text-[11px] font-semibold text-gray-400">In Review</p>
+                <h3 class="text-[20px] font-extrabold text-[#2b332b] mt-0.5">6</h3>
+                <span class="text-[10px] font-bold text-[#f7b928]">2 due today</span>
+              </div>
+              <div class="dash-card p-4 border-l-4 border-[#33bca0]">
+                <p class="text-[11px] font-semibold text-gray-400">Completed</p>
+                <h3 class="text-[20px] font-extrabold text-[#2b332b] mt-0.5">142</h3>
+                <span class="text-[10px] font-bold text-[#33bca0]">98.4% on time</span>
+              </div>
+              <div class="dash-card p-4 border-l-4 border-[#313931]">
+                <p class="text-[11px] font-semibold text-gray-400">Team Velocity</p>
+                <h3 class="text-[20px] font-extrabold text-[#2b332b] mt-0.5">94 pts</h3>
+                <span class="text-[10px] font-bold text-gray-500">Sprint #24</span>
+              </div>
+            </div>
+
+            <!-- Filter Bar + New Project Action -->
+            <div class="dash-card p-4 mb-5 flex flex-wrap items-center justify-between gap-3 stagger-card">
+              <div class="flex items-center gap-2">
+                <button onclick="filterProjects('all', this)" class="proj-filter-btn px-3.5 py-1.5 rounded-xl text-[11.5px] font-bold bg-[#6cc61c] text-white transition">All (6)</button>
+                <button onclick="filterProjects('active', this)" class="proj-filter-btn px-3.5 py-1.5 rounded-xl text-[11.5px] font-semibold text-gray-500 hover:bg-gray-100 transition">In Progress</button>
+                <button onclick="filterProjects('completed', this)" class="proj-filter-btn px-3.5 py-1.5 rounded-xl text-[11.5px] font-semibold text-gray-500 hover:bg-gray-100 transition">Completed</button>
+              </div>
+              <button onclick="openNewProjectModal()" class="px-4 py-2 rounded-xl bg-[#313931] hover:bg-[#6cc61c] text-white text-[11.5px] font-bold flex items-center gap-2 transition shadow-sm">
+                <i class="fa-solid fa-plus"></i> Create Project
+              </button>
+            </div>
+
+            <!-- Project Cards Grid -->
+            <div id="projectsGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 stagger-card">
+              <!-- Populated dynamically via JS -->
+            </div>
+
+            <!-- Milestone Roadmap Timeline (Long scrollable bottom section) -->
+            <div class="dash-card p-5 stagger-card">
+              <h3 class="text-[15px] font-bold text-[#2b332b] mb-4">Q2 Product Launch Roadmap & Commit Log</h3>
+              <div class="space-y-4 border-l-2 border-[#e2f5cf] ml-3 pl-5">
+                <div class="relative">
+                  <span class="w-3 h-3 rounded-full bg-[#6cc61c] absolute -left-[27px] top-1 ring-4 ring-[#effbe3]"></span>
+                  <p class="text-[12.5px] font-bold text-[#2b332b]">Creativilo Mobile App v3.2 Released</p>
+                  <p class="text-[11px] text-gray-400">Deployed iOS & Android real-time push notification widgets • 2 hours ago</p>
+                </div>
+                <div class="relative">
+                  <span class="w-3 h-3 rounded-full bg-[#f7b928] absolute -left-[27px] top-1 ring-4 ring-[#fef9ec]"></span>
+                  <p class="text-[12.5px] font-bold text-[#2b332b]">Multi-Currency Checkout Gateway QA</p>
+                  <p class="text-[11px] text-gray-400">Stripe & PayPal automated webhook stress test passed (12,000 req/min) • Yesterday</p>
+                </div>
+                <div class="relative">
+                  <span class="w-3 h-3 rounded-full bg-[#33bca0] absolute -left-[27px] top-1 ring-4 ring-[#e8fbf7]"></span>
+                  <p class="text-[12.5px] font-bold text-[#2b332b]">Warehouse Inventory Sync Engine</p>
+                  <p class="text-[11px] text-gray-400">Connected 4 regional outlets with zero-latency barcode tracking • Apr 26, 2022</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ***************************************************
+               MENU 3: ANALYTICS (Deep Funnel, Channels & Pages)
+               *************************************************** -->
+          <section class="menu-view" id="view-analytics" onscroll="updateScrollProgress(this)">
+            <!-- Conversion Funnel Banner -->
+            <div class="hero-green-banner mb-5 stagger-card">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-3 px-1">
+                <div>
+                  <h3 class="text-white font-extrabold text-[15px]">Conversion Funnel Performance</h3>
+                  <p class="text-white/80 text-[11px]">Real-time visitor journey from impression to repeat purchase</p>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-white/20 text-white text-[11px] font-bold">Avg. Conv Rate: 4.82%</span>
+              </div>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <div class="kpi-subcard">
+                  <p class="text-[10.5px] text-white/80">1. Store Impressions</p>
+                  <h4 class="text-[18px] font-extrabold mt-0.5">148,920</h4>
+                  <span class="text-[10px] text-white/90">100% Traffic</span>
+                </div>
+                <div class="kpi-subcard">
+                  <p class="text-[10.5px] text-white/80">2. Product Views</p>
+                  <h4 class="text-[18px] font-extrabold mt-0.5">64,310</h4>
+                  <span class="text-[10px] text-white/90">43.1% Drop-off</span>
+                </div>
+                <div class="kpi-subcard">
+                  <p class="text-[10.5px] text-white/80">3. Added to Cart</p>
+                  <h4 class="text-[18px] font-extrabold mt-0.5">18,450</h4>
+                  <span class="text-[10px] text-white/90">28.6% of Views</span>
+                </div>
+                <div class="kpi-subcard">
+                  <p class="text-[10.5px] text-white/80">4. Completed Order</p>
+                  <h4 class="text-[18px] font-extrabold mt-0.5">7,182</h4>
+                  <span class="text-[10px] text-white/90">+19.4% YoY</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Traffic Channels & Device Breakdown -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5 stagger-card">
+              <div class="dash-card p-5">
+                <h3 class="text-[15px] font-bold text-[#2b332b] mb-4">Traffic Acquisition Channels</h3>
+                <div class="space-y-3.5">
+                  <div>
+                    <div class="flex justify-between text-[12px] font-bold mb-1">
+                      <span>Organic Search (Google / Bing)</span>
+                      <span class="text-[#6cc61c]">46% (22,659)</span>
+                    </div>
+                    <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div class="h-full bg-[#6cc61c] rounded-full" style="width: 46%"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-[12px] font-bold mb-1">
+                      <span>Direct Storefront URL</span>
+                      <span class="text-[#313931]">28% (13,792)</span>
+                    </div>
+                    <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div class="h-full bg-[#313931] rounded-full" style="width: 28%"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-[12px] font-bold mb-1">
+                      <span>Social Media Campaigns</span>
+                      <span class="text-[#f7b928]">18% (8,866)</span>
+                    </div>
+                    <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div class="h-full bg-[#f7b928] rounded-full" style="width: 18%"></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div class="flex justify-between text-[12px] font-bold mb-1">
+                      <span>Affiliate & Partner Referrals</span>
+                      <span class="text-[#33bca0]">8% (3,942)</span>
+                    </div>
+                    <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div class="h-full bg-[#33bca0] rounded-full" style="width: 8%"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Audience Geography & Devices -->
+              <div class="dash-card p-5 flex flex-col justify-between">
+                <h3 class="text-[15px] font-bold text-[#2b332b] mb-3">Top Customer Regions</h3>
+                <div class="space-y-2.5 text-[12px]">
+                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#f8faf7]">
+                    <span class="font-bold">🇺🇸 United States</span>
+                    <span class="font-extrabold text-[#6cc61c]">$41,200 (43%)</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#f8faf7]">
+                    <span class="font-bold">🇮🇩 Indonesia</span>
+                    <span class="font-extrabold text-[#2b332b]">$24,850 (26%)</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#f8faf7]">
+                    <span class="font-bold">🇬🇧 United Kingdom</span>
+                    <span class="font-extrabold text-[#2b332b]">$16,300 (17%)</span>
+                  </div>
+                  <div class="flex items-center justify-between p-2.5 rounded-xl bg-[#f8faf7]">
+                    <span class="font-bold">🇸🇬 Singapore</span>
+                    <span class="font-extrabold text-[#2b332b]">$12,650 (14%)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Top Landing Pages Table (Scrollable) -->
+            <div class="dash-card p-5 stagger-card">
+              <h3 class="text-[15px] font-bold text-[#2b332b] mb-3">High-Performing Storefront Pages</h3>
+              <div class="divide-y divide-gray-100 text-[12px]">
+                <div class="grid grid-cols-12 py-2.5 font-semibold text-gray-400">
+                  <div class="col-span-5">Page Path</div>
+                  <div class="col-span-3">Unique Visitors</div>
+                  <div class="col-span-2">Avg. Time</div>
+                  <div class="col-span-2 text-right">Conv. Rate</div>
+                </div>
+                <div class="grid grid-cols-12 py-3 items-center">
+                  <div class="col-span-5 font-bold text-[#2b332b]">/store/airpulse-pro-max</div>
+                  <div class="col-span-3 text-gray-500">19,420</div>
+                  <div class="col-span-2 text-gray-500">04m 12s</div>
+                  <div class="col-span-2 text-right font-bold text-[#6cc61c]">6.8%</div>
+                </div>
+                <div class="grid grid-cols-12 py-3 items-center">
+                  <div class="col-span-5 font-bold text-[#2b332b]">/collections/summer-bundle-2022</div>
+                  <div class="col-span-3 text-gray-500">14,110</div>
+                  <div class="col-span-2 text-gray-500">03m 45s</div>
+                  <div class="col-span-2 text-right font-bold text-[#6cc61c]">5.4%</div>
+                </div>
+                <div class="grid grid-cols-12 py-3 items-center">
+                  <div class="col-span-5 font-bold text-[#2b332b]">/flash-sale/smart-home-kit</div>
+                  <div class="col-span-3 text-gray-500">9,870</div>
+                  <div class="col-span-2 text-gray-500">02m 58s</div>
+                  <div class="col-span-2 text-right font-bold text-[#f7b928]">4.1%</div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ***************************************************
+               MENU 4: REPORTS (Downloadable Financial & Tax Docs)
+               *************************************************** -->
+          <section class="menu-view" id="view-reports" onscroll="updateScrollProgress(this)">
+            <!-- Report Generator Bar -->
+            <div class="dash-card p-5 mb-5 flex flex-wrap items-center justify-between gap-4 stagger-card">
+              <div>
+                <h3 class="text-[15px] font-bold text-[#2b332b]">Automated Financial & Audit Reports</h3>
+                <p class="text-[11.5px] text-gray-400">Generate instant PDF or CSV statements for accounting & tax compliance</p>
+              </div>
+              <div class="flex items-center gap-2.5">
+                <select id="reportPeriodSelect" class="h-9 px-3 rounded-xl bg-[#f7f8fa] text-[12px] font-semibold text-[#2b332b] border border-gray-200 focus:outline-none">
+                  <option>April 2022 (Current)</option>
+                  <option>Q1 2022 Summary</option>
+                  <option>Full Year 2021</option>
+                </select>
+                <button onclick="generateCustomReport()" class="px-4 h-9 rounded-xl bg-[#6cc61c] hover:bg-[#5bb012] text-white text-[12px] font-bold flex items-center gap-2 transition shadow-sm">
+                  <i class="fa-solid fa-wand-magic-sparkles"></i> Generate New Report
+                </button>
+              </div>
+            </div>
+
+            <!-- Monthly Income vs Expense Comparison -->
+            <div class="dash-card p-5 mb-5 stagger-card">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-[14px] font-bold text-[#2b332b]">Net Profit vs Operational Cost (Last 6 Months)</h3>
+                <div class="flex items-center gap-4 text-[11px] font-semibold">
+                  <span class="flex items-center gap-1.5 text-[#6cc61c]"><span class="w-2.5 h-2.5 rounded-sm bg-[#6cc61c]"></span> Gross Revenue</span>
+                  <span class="flex items-center gap-1.5 text-[#313931]"><span class="w-2.5 h-2.5 rounded-sm bg-[#313931]"></span> Expenses</span>
+                </div>
+              </div>
+              <div class="grid grid-cols-6 gap-4 items-end h-36 pt-4 px-2 border-b border-gray-100">
+                <div class="flex flex-col items-center gap-1.5">
+                  <div class="w-full flex justify-center items-end gap-1.5 h-24">
+                    <div class="w-4 bg-[#6cc61c] rounded-t-md h-[65%]" title="$65K"></div>
+                    <div class="w-4 bg-[#313931] rounded-t-md h-[30%]" title="$30K"></div>
+                  </div>
+                  <span class="text-[10.5px] font-semibold text-gray-400">Nov</span>
+                </div>
+                <div class="flex flex-col items-center gap-1.5">
+                  <div class="w-full flex justify-center items-end gap-1.5 h-24">
+                    <div class="w-4 bg-[#6cc61c] rounded-t-md h-[78%]" title="$78K"></div>
+                    <div class="w-4 bg-[#313931] rounded-t-md h-[35%]" title="$35K"></div>
+                  </div>
+                  <span class="text-[10.5px] font-semibold text-gray-400">Dec</span>
+                </div>
+                <div class="flex flex-col items-center gap-1.5">
+                  <div class="w-full flex justify-center items-end gap-1.5 h-24">
+                    <div class="w-4 bg-[#6cc61c] rounded-t-md h-[70%]" title="$70K"></div>
+                    <div class="w-4 bg-[#313931] rounded-t-md h-[28%]" title="$28K"></div>
+                  </div>
+                  <span class="text-[10.5px] font-semibold text-gray-400">Jan</span>
+                </div>
+                <div class="flex flex-col items-center gap-1.5">
+                  <div class="w-full flex justify-center items-end gap-1.5 h-24">
+                    <div class="w-4 bg-[#6cc61c] rounded-t-md h-[84%]" title="$84K"></div>
+                    <div class="w-4 bg-[#313931] rounded-t-md h-[32%]" title="$32K"></div>
+                  </div>
+                  <span class="text-[10.5px] font-semibold text-gray-400">Feb</span>
+                </div>
+                <div class="flex flex-col items-center gap-1.5">
+                  <div class="w-full flex justify-center items-end gap-1.5 h-24">
+                    <div class="w-4 bg-[#6cc61c] rounded-t-md h-[90%]" title="$90K"></div>
+                    <div class="w-4 bg-[#313931] rounded-t-md h-[36%]" title="$36K"></div>
+                  </div>
+                  <span class="text-[10.5px] font-semibold text-gray-400">Mar</span>
+                </div>
+                <div class="flex flex-col items-center gap-1.5">
+                  <div class="w-full flex justify-center items-end gap-1.5 h-24">
+                    <div class="w-4 bg-[#6cc61c] rounded-t-md h-[100%]" title="$95K"></div>
+                    <div class="w-4 bg-[#313931] rounded-t-md h-[34%]" title="$34K"></div>
+                  </div>
+                  <span class="text-[10.5px] font-bold text-[#2b332b]">Apr</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Scrollable Archive of Ready Reports -->
+            <div class="dash-card p-5 stagger-card">
+              <h3 class="text-[15px] font-bold text-[#2b332b] mb-3.5">Downloadable Report Archive</h3>
+              <div id="reportsListContainer" class="space-y-2.5">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </section>
+
+          <!-- ***************************************************
+               MENU 5: STORE (Storefront Settings, Gateways, Promos)
+               *************************************************** -->
+          <section class="menu-view" id="view-store" onscroll="updateScrollProgress(this)">
+            <!-- Live Storefront Status Banner -->
+            <div class="hero-green-banner mb-5 stagger-card flex flex-wrap items-center justify-between gap-4">
+              <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center text-white text-xl">
+                  <i class="fa-solid fa-store"></i>
+                </div>
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-white font-extrabold text-[16px]">Creativilo Official Flagship Store</h3>
+                    <span id="storeStatusBadge" class="px-2.5 py-0.5 rounded-full bg-white text-[#56a710] text-[10px] font-extrabold">ONLINE</span>
+                  </div>
+                  <p class="text-white/85 text-[11.5px] mt-0.5">https://store.creativilo.com • SSL Active • 99.98% Uptime</p>
+                </div>
+              </div>
+              <button onclick="toggleStoreMaintenance()" id="maintenanceBtn" class="px-4 py-2 rounded-xl bg-[#313931] text-white text-[11.5px] font-bold hover:opacity-90 transition">
+                Switch to Maintenance Mode
+              </button>
+            </div>
+
+            <!-- Payment Gateways Grid -->
+            <div class="dash-card p-5 mb-5 stagger-card">
+              <h3 class="text-[15px] font-bold text-[#2b332b] mb-3.5">Connected Payment Gateways</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                <div class="p-3.5 rounded-2xl border border-gray-100 flex items-center justify-between bg-[#f8faf7]">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#635bff]/10 text-[#635bff] flex items-center justify-center text-lg">
+                      <i class="fa-brands fa-stripe"></i>
+                    </div>
+                    <div>
+                      <p class="text-[12.5px] font-bold text-[#2b332b]">Stripe Checkout</p>
+                      <p class="text-[10.5px] text-gray-400">Instant Credit Card & Apple Pay</p>
+                    </div>
+                  </div>
+                  <input type="checkbox" checked onchange="showToast('Stripe gateway status updated')" class="w-4 h-4 accent-[#6cc61c] cursor-pointer"/>
+                </div>
+
+                <div class="p-3.5 rounded-2xl border border-gray-100 flex items-center justify-between bg-[#f8faf7]">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#00457C]/10 text-[#00457C] flex items-center justify-center text-lg">
+                      <i class="fa-brands fa-paypal"></i>
+                    </div>
+                    <div>
+                      <p class="text-[12.5px] font-bold text-[#2b332b]">PayPal Express</p>
+                      <p class="text-[10.5px] text-gray-400">Global Buyer Protection</p>
+                    </div>
+                  </div>
+                  <input type="checkbox" checked onchange="showToast('PayPal Express status updated')" class="w-4 h-4 accent-[#6cc61c] cursor-pointer"/>
+                </div>
+              </div>
+            </div>
+
+            <!-- Active Promo Codes & Customer Reviews (Scrollable) -->
+            <div class="dash-card p-5 stagger-card">
+              <div class="flex items-center justify-between mb-3.5">
+                <h3 class="text-[15px] font-bold text-[#2b332b]">Active Discount Campaigns</h3>
+                <button onclick="showToast('Promo code SPRING25 copied to clipboard!')" class="text-[11px] font-bold text-[#6cc61c] hover:underline">Copy Best Code</button>
+              </div>
+              <div class="space-y-2.5 text-[12px]">
+                <div class="p-3 rounded-xl bg-[#effbe3] flex items-center justify-between">
+                  <div>
+                    <span class="font-extrabold text-[#56a710] tracking-wider">CREATIVILO25</span>
+                    <p class="text-[10.5px] text-gray-500">25% OFF Orders over $150 • 342 redemptions</p>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-lg bg-white text-[#56a710] font-bold text-[10.5px]">Active</span>
+                </div>
+                <div class="p-3 rounded-xl bg-[#fef9ec] flex items-center justify-between">
+                  <div>
+                    <span class="font-extrabold text-[#d99b16] tracking-wider">FREESHIP2022</span>
+                    <p class="text-[10.5px] text-gray-500">Free Express Worldwide Shipping • 819 redemptions</p>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-lg bg-white text-[#d99b16] font-bold text-[10.5px]">Active</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ***************************************************
+               MENU 6: OUTLET (Physical Branches & Stock Transfers)
+               *************************************************** -->
+          <section class="menu-view" id="view-outlet" onscroll="updateScrollProgress(this)">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5 stagger-card">
+              <!-- Outlet 1 -->
+              <div class="dash-card p-5 border-t-4 border-[#6cc61c]">
+                <div class="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 class="text-[14.5px] font-bold text-[#2b332b]">Manhattan Flagship Hub</h3>
+                    <p class="text-[11px] text-gray-400">450 Broadway, New York, NY</p>
+                  </div>
+                  <span class="px-2.5 py-0.5 rounded-full bg-[#effbe3] text-[#6cc61c] text-[10px] font-bold">Open Now</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 my-3 p-2.5 rounded-xl bg-[#f7f8fa] text-center">
+                  <div>
+                    <p class="text-[10px] text-gray-400">Daily Sales</p>
+                    <p class="text-[13px] font-extrabold text-[#2b332b]">$14,280</p>
+                  </div>
+                  <div>
+                    <p class="text-[10px] text-gray-400">Staff On Duty</p>
+                    <p class="text-[13px] font-extrabold text-[#2b332b]">16</p>
+                  </div>
+                  <div>
+                    <p class="text-[10px] text-gray-400">Stock Health</p>
+                    <p class="text-[13px] font-extrabold text-[#6cc61c]">96%</p>
+                  </div>
+                </div>
+                <button onclick="showToast('Synced POS terminals for Manhattan Flagship Hub')" class="w-full py-2 rounded-xl bg-[#f1f4f1] hover:bg-[#6cc61c] hover:text-white text-[11.5px] font-bold transition">
+                  Sync POS Terminal
+                </button>
+              </div>
+
+              <!-- Outlet 2 -->
+              <div class="dash-card p-5 border-t-4 border-[#f7b928]">
+                <div class="flex justify-between items-start mb-2">
+                  <div>
+                    <h3 class="text-[14.5px] font-bold text-[#2b332b]">Westside Mall Express</h3>
+                    <p class="text-[11px] text-gray-400">10250 Santa Monica Blvd, LA</p>
+                  </div>
+                  <span class="px-2.5 py-0.5 rounded-full bg-[#effbe3] text-[#6cc61c] text-[10px] font-bold">Open Now</span>
+                </div>
+                <div class="grid grid-cols-3 gap-2 my-3 p-2.5 rounded-xl bg-[#f7f8fa] text-center">
+                  <div>
+                    <p class="text-[10px] text-gray-400">Daily Sales</p>
+                    <p class="text-[13px] font-extrabold text-[#2b332b]">$9,640</p>
+                  </div>
+                  <div>
+                    <p class="text-[10px] text-gray-400">Staff On Duty</p>
+                    <p class="text-[13px] font-extrabold text-[#2b332b]">11</p>
+                  </div>
+                  <div>
+                    <p class="text-[10px] text-gray-400">Stock Health</p>
+                    <p class="text-[13px] font-extrabold text-[#f7b928]">82%</p>
+                  </div>
+                </div>
+                <button onclick="showToast('Synced POS terminals for Westside Mall Express')" class="w-full py-2 rounded-xl bg-[#f1f4f1] hover:bg-[#6cc61c] hover:text-white text-[11.5px] font-bold transition">
+                  Sync POS Terminal
+                </button>
+              </div>
+            </div>
+
+            <!-- Inter-Outlet Inventory Transfer Queue -->
+            <div class="dash-card p-5 stagger-card">
+              <h3 class="text-[15px] font-bold text-[#2b332b] mb-3.5">Inter-Outlet Stock Transfer Queue</h3>
+              <div class="divide-y divide-gray-100 text-[12px]">
+                <div class="py-3 flex items-center justify-between">
+                  <div>
+                    <p class="font-bold text-[#2b332b]">Transfer #TR-8821: 120x AirPulse Pro Max</p>
+                    <p class="text-[11px] text-gray-400">From Central Warehouse → Westside Mall Express</p>
+                  </div>
+                  <span class="px-3 py-1 rounded-lg bg-[#e8fbf7] text-[#33bca0] text-[10.5px] font-bold">In Transit</span>
+                </div>
+                <div class="py-3 flex items-center justify-between">
+                  <div>
+                    <p class="font-bold text-[#2b332b]">Transfer #TR-8819: 85x Chrono Smart Watch S8</p>
+                    <p class="text-[11px] text-gray-400">From Central Warehouse → Manhattan Flagship Hub</p>
+                  </div>
+                  <span class="px-3 py-1 rounded-lg bg-[#effbe3] text-[#6cc61c] text-[10.5px] font-bold">Delivered</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ***************************************************
+               MENU 7: PRODUCTS (Inventory Catalog + Add Modal)
+               *************************************************** -->
+          <section class="menu-view" id="view-products" onscroll="updateScrollProgress(this)">
+            <div class="dash-card p-4 mb-5 flex flex-wrap items-center justify-between gap-3 stagger-card">
+              <div class="flex items-center gap-2">
+                <span class="text-[13px] font-bold text-[#2b332b]">Product Inventory (<span id="productCountBadge">6</span> items)</span>
+              </div>
+              <button onclick="openAddProductModal()" class="px-4 py-2 rounded-xl bg-[#6cc61c] hover:bg-[#5bb012] text-white text-[11.5px] font-bold flex items-center gap-2 transition shadow-sm">
+                <i class="fa-solid fa-plus"></i> Add New Product
+              </button>
+            </div>
+
+            <!-- Product Catalog List (Scrollable) -->
+            <div class="dash-card p-5 stagger-card">
+              <div class="grid grid-cols-12 text-[11px] font-semibold text-gray-400 pb-2.5 border-b border-gray-100">
+                <div class="col-span-5">Product Name</div>
+                <div class="col-span-2">Category</div>
+                <div class="col-span-2">Price</div>
+                <div class="col-span-3 text-right">Stock Status</div>
+              </div>
+              <div id="productsTableBody" class="divide-y divide-gray-50 text-[12px]">
+                <!-- Populated dynamically via JS -->
+              </div>
+            </div>
+          </section>
+
+          <!-- ***************************************************
+               MENU 8: CHAT (Interactive Customer & Team Messenger)
+               *************************************************** -->
+          <section class="menu-view" id="view-chat" onscroll="updateScrollProgress(this)">
+            <div class="dash-card overflow-hidden grid grid-cols-1 md:grid-cols-12 h-[540px] stagger-card">
+              <!-- Left Thread List -->
+              <div class="md:col-span-4 border-r border-gray-100 flex flex-col h-full bg-[#fcfdfc]">
+                <div class="p-3.5 border-b border-gray-100 font-bold text-[13px] text-[#2b332b] flex items-center justify-between">
+                  <span>Messages (3)</span>
+                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-[#effbe3] text-[#6cc61c]">Live</span>
+                </div>
+                <div id="chatContactsList" class="flex-1 overflow-y-auto divide-y divide-gray-50">
+                  <!-- Populated via JS -->
+                </div>
+              </div>
+
+              <!-- Right Active Conversation -->
+              <div class="md:col-span-8 flex flex-col h-full bg-white">
+                <!-- Chat Header -->
+                <div class="p-3.5 border-b border-gray-100 flex items-center justify-between">
+                  <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-full bg-[#effbe3] text-[#6cc61c] font-bold flex items-center justify-center text-xs" id="activeChatAvatar">SA</div>
+                    <div>
+                      <p id="activeChatName" class="text-[12.5px] font-bold text-[#2b332b]">Sarah Jenkins (VIP Buyer)</p>
+                      <p class="text-[10px] text-[#6cc61c] font-semibold flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-[#6cc61c]"></span> Online • Order #2020912
+                      </p>
+                    </div>
+                  </div>
+                  <button onclick="showToast('Marked conversation as resolved!')" class="px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-[#effbe3] hover:text-[#6cc61c] text-[10.5px] font-bold transition">
+                    Resolve Ticket
+                  </button>
+                </div>
+
+                <!-- Messages Scroll Box -->
+                <div id="chatMessagesBox" class="flex-1 p-4 overflow-y-auto custom-scroll space-y-3 bg-[#f9faf9]">
+                  <!-- Populated via JS -->
+                </div>
+
+                <!-- Input Bar -->
+                <form onsubmit="sendChatMessage(event)" class="p-3 border-t border-gray-100 flex items-center gap-2 bg-white">
+                  <input
+                    id="chatInputField"
+                    type="text"
+                    placeholder="Type your reply to customer..."
+                    class="flex-1 h-9 px-3.5 rounded-xl bg-[#f7f8fa] text-[12px] focus:outline-none focus:ring-2 focus:ring-brand-lime/40"
+                  />
+                  <button type="submit" class="h-9 px-4 rounded-xl bg-[#6cc61c] hover:bg-[#5ab012] text-white text-[12px] font-bold flex items-center gap-1.5 transition">
+                    <span>Send</span>
+                    <i class="fa-solid fa-paper-plane text-[10px]"></i>
+                  </button>
+                </form>
+              </div>
+            </div>
+          </section>
+
+          <!-- ***************************************************
+               MENU 9: LOG OUT (Session Summary & Lock Screen)
+               *************************************************** -->
+          <section class="menu-view" id="view-logout" onscroll="updateScrollProgress(this)">
+            <div class="dash-card p-8 max-w-md mx-auto my-8 text-center stagger-card">
+              <div class="w-16 h-16 rounded-2xl bg-[#effbe3] text-[#6cc61c] flex items-center justify-center text-2xl mx-auto mb-4 shadow-sm">
+                <i class="fa-solid fa-shield-halved"></i>
+              </div>
+              <h2 class="text-[18px] font-extrabold text-[#2b332b]">Ready to Sign Out, <span class="profile-name-sync">John Doe</span>?</h2>
+              <p class="text-[12px] text-gray-400 mt-1 mb-5">
+                Your current session has been active for <strong>4h 18m</strong>. All dashboard changes and store configurations are automatically synced.
+              </p>
+
+              <div class="p-3.5 rounded-2xl bg-[#f7f8fa] text-left text-[11.5px] space-y-1.5 mb-6">
+                <div class="flex justify-between">
+                  <span class="text-gray-400">Session Revenue Processed:</span>
+                  <span class="font-bold text-[#6cc61c]">$4,820.00</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="text-gray-400">Tasks Completed Today:</span>
+                  <span class="font-bold text-[#2b332b]" id="logoutTaskSummary">5 of 8 tasks</span>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <button onclick="switchMenu('dashboard')" class="flex-1 py-2.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-[#2b332b] text-[12px] font-bold transition">
+                  Stay Logged In
+                </button>
+                <button onclick="triggerSimulatedLogout()" class="flex-1 py-2.5 rounded-xl bg-[#313931] hover:bg-red-600 text-white text-[12px] font-bold transition">
+                  Confirm Log Out
+                </button>
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </main>
+
+      <!-- =====================================================
+           3. RIGHT DARK PROFILE & EARNING PANEL (Exact Reference)
+           ===================================================== -->
+      <aside class="right-panel">
+
+        <!-- Top Profile Section -->
+        <div>
+          <!-- Header Row: Profile + Bell & Gear -->
+          <div class="flex items-center justify-between mb-4 px-1">
+            <h2 class="text-[15px] font-bold tracking-tight text-white">Profile</h2>
+            <div class="flex items-center gap-3.5 text-white/85">
+              <!-- Notification Bell with Red Badge -->
+              <button onclick="toggleNotifPopover()" class="relative hover:text-brand-lime transition">
+                <i class="fa-solid fa-bell text-[13.5px]"></i>
+                <span class="w-1.5 h-1.5 rounded-full bg-red-500 absolute -top-0.5 -right-0.5"></span>
+              </button>
+              <!-- Settings Gear -->
+              <button onclick="openEditProfileModal()" class="hover:text-brand-lime hover:rotate-45 transition-all">
+                <i class="fa-solid fa-gear text-[13.5px]"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Notification Dropdown Popover -->
+          <div id="notifPopover" class="hidden absolute right-4 top-12 w-64 bg-[#262e26] border border-white/10 rounded-2xl p-3 shadow-2xl z-50 text-[11px]">
+            <div class="flex items-center justify-between pb-2 mb-2 border-b border-white/10">
+              <span class="font-bold text-white">Notifications</span>
+              <span class="text-[#6cc61c] font-semibold cursor-pointer" onclick="toggleNotifPopover()">Close</span>
+            </div>
+            <div class="space-y-2 text-white/80">
+              <div class="p-2 rounded-xl bg-white/5">
+                <p class="font-semibold text-white">New Order #2020912</p>
+                <p class="text-[10px] text-white/50">2 minutes ago • -$299,89</p>
+              </div>
+              <div class="p-2 rounded-xl bg-white/5">
+                <p class="font-semibold text-white">Payout Ready ($95,000)</p>
+                <p class="text-[10px] text-white/50">1 hour ago • Earning Wallet</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Geometric Green Cover Banner + Overlapping Avatar -->
+          <div class="relative mb-9">
+            <!-- Green Geometric Cover SVG matching reference image -->
+            <div class="h-[104px] w-full rounded-[20px] bg-[#6cc61c] overflow-hidden relative shadow-inner">
+              <svg viewBox="0 0 260 105" class="w-full h-full">
+                <!-- Diagonal Geometric Rectangles & Lines -->
+                <g transform="rotate(-35 130 52)">
+                  <rect x="-10" y="15" width="75" height="55" rx="8" fill="#4f9e0c" opacity="0.65"/>
+                  <rect x="20" y="30" width="60" height="45" rx="6" fill="#85df35" opacity="0.55"/>
+                  <rect x="115" y="-20" width="90" height="65" rx="8" fill="#5cb312" opacity="0.7"/>
+                  <rect x="145" y="38" width="75" height="50" rx="6" fill="#9be84e" opacity="0.45"/>
+                  <line x1="70" y1="-20" x2="70" y2="140" stroke="#b6f674" stroke-width="1.5" opacity="0.7"/>
+                  <line x1="105" y1="-20" x2="105" y2="140" stroke="#b6f674" stroke-width="1" opacity="0.5"/>
+                  <line x1="190" y1="-20" x2="190" y2="140" stroke="#b6f674" stroke-width="1.5" opacity="0.6"/>
+                  <!-- Tiny decorative dots/squares -->
+                  <circle cx="92" cy="70" r="2" fill="#ffffff" opacity="0.8"/>
+                  <rect x="180" y="20" width="5" height="5" fill="#438908" opacity="0.7"/>
+                  <rect x="155" y="75" width="6" height="6" fill="#ffffff" opacity="0.6"/>
+                </g>
+              </svg>
+              <!-- Small White Camera/Badge Icon in Top-Right of Cover -->
+              <button onclick="openEditProfileModal()" title="Change Cover" class="w-5 h-5 rounded-full bg-white text-[#56a710] flex items-center justify-center text-[10px] absolute top-2.5 right-2.5 shadow-sm hover:scale-110 transition">
+                <i class="fa-solid fa-camera"></i>
+              </button>
+            </div>
+
+            <!-- Circular Portrait Avatar (Centered Overlap) -->
+            <div class="w-[62px] h-[62px] rounded-full bg-white p-[2.5px] absolute left-1/2 -translate-x-1/2 -bottom-7 shadow-lg cursor-pointer group" onclick="openEditProfileModal()">
+              <img
+                src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80"
+                onerror="this.src='https://placehold.co/120x120/313931/ffffff?text=JD'"
+                alt="John Doe"
+                class="w-full h-full object-cover rounded-full group-hover:scale-105 transition"
+              />
+            </div>
+          </div>
+
+          <!-- User Name & Interactive Task Progress -->
+          <div class="text-center px-1">
+            <h3 class="text-[14.5px] font-bold text-white tracking-tight profile-name-sync">John Doe</h3>
+            <p id="taskCounterLabel" class="text-[10.5px] font-medium text-[#8d968d] mt-0.5">
+              5 from 8 tasks completed
+            </p>
+
+            <!-- 8-Segment Interactive Task Bar (Click any segment to update!) -->
+            <div id="taskSegmentsBar" class="grid grid-cols-8 gap-1.5 my-3 px-1" title="Click segments to update completed tasks">
+              <!-- Populated by JS (5 green, 3 dark by default) -->
+            </div>
+
+            <!-- 3-Column Metrics (1.8K Products | 3.2M Followers | 75.2K Sales) -->
+            <div class="grid grid-cols-3 items-center py-2.5 my-1 text-center divide-x divide-white/10">
+              <div>
+                <p class="text-[13px] font-extrabold text-white">1.8K</p>
+                <p class="text-[10px] font-medium text-[#8d968d] mt-0.5">Products</p>
+              </div>
+              <div>
+                <p class="text-[13px] font-extrabold text-white">3.2M</p>
+                <p class="text-[10px] font-medium text-[#8d968d] mt-0.5">Followers</p>
+              </div>
+              <div>
+                <p class="text-[13px] font-extrabold text-white">75.2K</p>
+                <p class="text-[10px] font-medium text-[#8d968d] mt-0.5">Sales</p>
+              </div>
+            </div>
+
+            <!-- Edit Profile Green Pill Button -->
+            <button
+              onclick="openEditProfileModal()"
+              class="mt-2 px-5 py-2 rounded-xl bg-[#6cc61c] hover:bg-[#7ce024] text-white text-[11px] font-bold inline-flex items-center gap-1.5 shadow-[0_6px_16px_rgba(108,198,28,0.3)] transition active:scale-95"
+            >
+              <i class="fa-regular fa-pen-to-square text-[11px]"></i>
+              <span>Edit Profile</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Bottom Earning Card (#3b443b outer, #262e26 inner) -->
+        <div class="bg-[#3c453c] rounded-[22px] p-4 mt-3">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-[13.5px] font-bold text-white">Earning</h3>
+            <button onclick="showToast('Monthly payouts are processed automatically every 1st of the month.')" class="text-[#9ca59c] hover:text-white transition text-xs">
+              <i class="fa-solid fa-circle-info"></i>
+            </button>
+          </div>
+
+          <!-- Inner Dark Box (#283028) -->
+          <div class="bg-[#2a322a] rounded-[18px] p-4 text-center shadow-inner">
+            <!-- Green Wallet Icon -->
+            <div class="w-8 h-8 mx-auto mb-1.5 rounded-lg flex items-center justify-center text-[#6cc61c] text-[18px]">
+              <i class="fa-solid fa-wallet"></i>
+            </div>
+            <h4 id="earningBalanceText" class="text-[19px] font-extrabold text-[#6cc61c] tracking-tight">$95,000</h4>
+            <p class="text-[10.5px] font-medium text-[#7c9c64] mt-0.5">Your earning this month</p>
+          </div>
+
+          <!-- Payment Settings Note + Withdraw Button -->
+          <div class="text-center mt-3.5">
+            <p class="text-[10.5px] font-medium text-[#6cc61c]/90 leading-relaxed px-3">
+              Update your payment method in settings
+            </p>
+            <button
+              onclick="openWithdrawModal()"
+              class="mt-3 w-full py-2.5 rounded-xl bg-[#6cc61c] hover:bg-[#7ce024] text-white text-[11.5px] font-bold shadow-[0_6px_16px_rgba(108,198,28,0.3)] transition active:scale-95"
+            >
+              Withdraw Earning
+            </button>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+  </div>
+
+  <!-- =========================================================
+       INTERACTIVE MODALS (Edit Profile, Withdraw, Add Product)
+       ========================================================= -->
+  <div id="modalBackdrop" class="hidden fixed inset-0 bg-black/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+
+    <!-- 1. Edit Profile Modal -->
+    <div id="editProfileModal" class="hidden bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-[16px] font-extrabold text-[#2b332b]">Edit Profile & Tasks</h3>
+        <button onclick="closeModals()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="saveProfileChanges(event)" class="space-y-3.5 text-[12px]">
+        <div>
+          <label class="font-bold text-gray-600 block mb-1">Display Name</label>
+          <input id="editNameInput" type="text" value="John Doe" required class="w-full h-10 px-3.5 rounded-xl bg-gray-50 border border-gray-200 font-semibold focus:outline-none focus:border-brand-lime"/>
+        </div>
+        <div>
+          <label class="font-bold text-gray-600 block mb-1">Completed Daily Tasks (0 - 8)</label>
+          <input id="editTasksInput" type="number" min="0" max="8" value="5" required class="w-full h-10 px-3.5 rounded-xl bg-gray-50 border border-gray-200 font-semibold focus:outline-none focus:border-brand-lime"/>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModals()" class="px-4 py-2 rounded-xl bg-gray-100 font-bold text-gray-600">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-[#6cc61c] text-white font-bold">Save Changes</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 2. Withdraw Earning Modal -->
+    <div id="withdrawModal" class="hidden bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-[16px] font-extrabold text-[#2b332b]">Withdraw Earning</h3>
+        <button onclick="closeModals()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="confirmWithdrawal(event)" class="space-y-3.5 text-[12px]">
+        <div class="p-3.5 rounded-2xl bg-[#effbe3] text-[#56a710] flex items-center justify-between">
+          <span class="font-semibold">Available Balance:</span>
+          <span class="text-[15px] font-extrabold" id="modalAvailBalance">$95,000</span>
+        </div>
+        <div>
+          <label class="font-bold text-gray-600 block mb-1">Withdrawal Amount ($)</label>
+          <input id="withdrawAmountInput" type="number" min="100" max="95000" value="15000" required class="w-full h-10 px-3.5 rounded-xl bg-gray-50 border border-gray-200 font-bold focus:outline-none focus:border-brand-lime"/>
+        </div>
+        <div>
+          <label class="font-bold text-gray-600 block mb-1">Destination Account</label>
+          <select class="w-full h-10 px-3.5 rounded-xl bg-gray-50 border border-gray-200 font-semibold">
+            <option>Chase Business Checking (•••• 4829)</option>
+            <option>Stripe Instant Payout Card (•••• 9910)</option>
+          </select>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModals()" class="px-4 py-2 rounded-xl bg-gray-100 font-bold text-gray-600">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-[#6cc61c] text-white font-bold">Transfer Funds</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- 3. Add Product Modal -->
+    <div id="addProductModal" class="hidden bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-[16px] font-extrabold text-[#2b332b]">Add New Product</h3>
+        <button onclick="closeModals()" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form onsubmit="saveNewProduct(event)" class="space-y-3.5 text-[12px]">
+        <div>
+          <label class="font-bold text-gray-600 block mb-1">Product Title</label>
+          <input id="newProdTitle" type="text" placeholder="e.g. Creativilo Studio Mic" required class="w-full h-10 px-3.5 rounded-xl bg-gray-50 border border-gray-200 font-semibold"/>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="font-bold text-gray-600 block mb-1">Category</label>
+            <input id="newProdCategory" type="text" value="Electronics" required class="w-full h-10 px-3.5 rounded-xl bg-gray-50 border border-gray-200 font-semibold"/>
+          </div>
+          <div>
+            <label class="font-bold text-gray-600 block mb-1">Price ($)</label>
+            <input id="newProdPrice" type="number" value="199" required class="w-full h-10 px-3.5 rounded-xl bg-gray-50 border border-gray-200 font-semibold"/>
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModals()" class="px-4 py-2 rounded-xl bg-gray-100 font-bold text-gray-600">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-[#6cc61c] text-white font-bold">Add Product</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- Floating Toast Feedback Box -->
+  <div id="toastBox" class="fixed bottom-6 left-1/2 -translate-x-1/2 px-5 py-3 rounded-2xl bg-[#313931] text-white text-[12px] font-semibold shadow-2xl flex items-center gap-2.5 opacity-0 pointer-events-none translate-y-4 transition-all duration-300 z-50">
+    <span class="w-5 h-5 rounded-full bg-[#6cc61c] text-white flex items-center justify-center text-[10px]">
+      <i class="fa-solid fa-check"></i>
+    </span>
+    <span id="toastText">Action completed!</span>
+  </div>
+
+  <!-- =========================================================
+       APPLICATION JAVASCRIPT (Menu Animations, Charts, State)
+       ========================================================= -->
+  <script>
+    // 1. Metadata for All 9 Sidebar Menus
+    const MENU_META = {
+      dashboard: {
+        title: 'Dashboard',
+        subtitle: 'All dwtails about your selling products are here..'
+      },
+      projects: {
+        title: 'Projects',
+        subtitle: 'Track active sprints, milestones, and product deliverables..'
+      },
+      analytics: {
+        title: 'Analytics',
+        subtitle: 'Deep conversion funnel metrics and real-time audience insights..'
+      },
+      reports: {
+        title: 'Reports',
+        subtitle: 'Financial statements, tax exports, and automated audit logs..'
+      },
+      store: {
+        title: 'Store',
+        subtitle: 'Configure payment gateways, domain status, and promo codes..'
+      },
+      outlet: {
+        title: 'Outlet',
+        subtitle: 'Monitor physical retail branches and inter-warehouse transfers..'
+      },
+      products: {
+        title: 'Products',
+        subtitle: 'Manage your SKU inventory, pricing tiers, and stock alerts..'
+      },
+      chat: {
+        title: 'Chat',
+        subtitle: 'Live customer support tickets and team messaging hub..'
+      },
+      logout: {
+        title: 'Log Out',
+        subtitle: 'Review your active session summary before signing out..'
+      }
+    };
+
+    let currentMenu = 'dashboard';
+    let completedTasks = 5;
+    let earningBalance = 95000;
+    let storeOnline = true;
+
+    // 2. Projects Data
+    const projectsData = [
+      { id: 1, name: 'Storefront 3.0 Redesign', team: 'UI/UX Squad', progress: 85, status: 'active', due: 'May 04, 2022' },
+      { id: 2, name: 'AI Inventory Forecasting', team: 'Data Science', progress: 62, status: 'active', due: 'May 18, 2022' },
+      { id: 3, name: 'One-Click Crypto Checkout', team: 'Payments Core', progress: 100, status: 'completed', due: 'Apr 20, 2022' },
+      { id: 4, name: 'Global Tax Compliance API', team: 'FinTech Ops', progress: 45, status: 'active', due: 'Jun 01, 2022' },
+      { id: 5, name: 'Mobile Loyalty Wallet App', team: 'Mobile Guild', progress: 100, status: 'completed', due: 'Apr 12, 2022' },
+      { id: 6, name: 'Warehouse Barcode Scanner', team: 'Logistics Dev', progress: 78, status: 'active', due: 'May 09, 2022' }
+    ];
+
+    // 3. Reports Data
+    const reportsData = [
+      { id: 'REP-01', title: 'April 2022 Monthly Revenue Statement', type: 'PDF • 2.4 MB', date: 'Apr 29, 2022' },
+      { id: 'REP-02', title: 'Q1 2022 Corporate Tax & VAT Ledger', type: 'CSV • 1.8 MB', date: 'Apr 15, 2022' },
+      { id: 'REP-03', title: 'Multi-Outlet Inventory Valuation Audit', type: 'PDF • 4.1 MB', date: 'Apr 02, 2022' },
+      { id: 'REP-04', title: 'Stripe & PayPal Payout Reconciliation', type: 'CSV • 940 KB', date: 'Mar 31, 2022' }
+    ];
+
+    // 4. Products Data
+    const productsData = [
+      { name: 'AirPulse Pro Max Headphones', category: 'Audio Gear', price: '$299.00', stock: '142 in stock' },
+      { name: 'Chrono Smart Watch Series 8', category: 'Wearables', price: '$249.00', stock: '89 in stock' },
+      { name: 'Ergonomic Mechanical KeyPad', category: 'Accessories', price: '$130.15', stock: '215 in stock' },
+      { name: '4K UltraWide Creator Monitor', category: 'Displays', price: '$458.13', stock: '18 Low Stock' },
+      { name: 'USB-C GaN 140W Power Dock', category: 'Chargers', price: '$89.99', stock: '310 in stock' },
+      { name: 'Creativilo Studio Condenser Mic', category: 'Audio Gear', price: '$210.99', stock: '64 in stock' }
+    ];
+
+    // 5. Chat Threads Data
+    const chatThreads = [
+      {
+        id: 0,
+        name: 'Sarah Jenkins (VIP Buyer)',
+        initials: 'SJ',
+        preview: 'Can I upgrade shipping on #2020912?',
+        messages: [
+          { sender: 'them', text: 'Hi Creativilo team! I just placed order #2020912 for the AirPulse Pro Max.', time: '11:38 AM' },
+          { sender: 'them', text: 'Can I upgrade my shipping to Express Overnight?', time: '11:39 AM' },
+          { sender: 'me', text: 'Hello Sarah! Absolutely, I have upgraded #2020912 to Priority Overnight at no extra charge.', time: '11:41 AM' }
+        ]
+      },
+      {
+        id: 1,
+        name: 'Marcus Vance (Outlet Mgr)',
+        initials: 'MV',
+        preview: 'Westside Mall stock transfer arrived!',
+        messages: [
+          { sender: 'them', text: 'Hey John, the 120 units of AirPulse Pro Max just arrived at Westside Mall.', time: '10:15 AM' },
+          { sender: 'me', text: 'Awesome news Marcus! Please scan them into POS Terminal #2.', time: '10:18 AM' }
+        ]
+      },
+      {
+        id: 2,
+        name: 'Elena Rostova (Supplier)',
+        initials: 'ER',
+        preview: 'Invoice #INV-902 approved for Q2',
+        messages: [
+          { sender: 'them', text: 'We have scheduled the next batch of Chrono Smart Watches for Friday dispatch.', time: 'Yesterday' }
+        ]
+      }
+    ];
+    let activeChatIndex = 0;
+
+    // =========================================================
+    // CORE MENU SWITCHING ENGINE + GLIDER ANIMATION
+    // =========================================================
+    function switchMenu(menuKey) {
+      if (!MENU_META[menuKey]) return;
+
+      // Update Sidebar Buttons & Glider Position
+      const allBtns = document.querySelectorAll('.nav-btn');
+      let targetBtn = null;
+      allBtns.forEach(btn => {
+        if (btn.dataset.menu === menuKey) {
+          btn.classList.add('active');
+          targetBtn = btn;
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      if (targetBtn) {
+        updateSidebarGlider(targetBtn);
+      }
+
+      // Clear unread dot when opening Chat
+      if (menuKey === 'chat') {
+        const dot = document.getElementById('chatUnreadDot');
+        if (dot) dot.style.display = 'none';
+      }
+
+      // Animate Header Title & Subtitle
+      const titleEl = document.getElementById('headerTitle');
+      const subEl = document.getElementById('headerSubtitle');
+      titleEl.style.opacity = '0';
+      subEl.style.opacity = '0';
+      setTimeout(() => {
+        titleEl.textContent = MENU_META[menuKey].title;
+        subEl.textContent = MENU_META[menuKey].subtitle;
+        titleEl.style.opacity = '1';
+        subEl.style.opacity = '1';
+      }, 120);
+
+      // Animate Outgoing & Incoming Menu Views inside Fixed Stage
+      if (currentMenu !== menuKey) {
+        const oldView = document.getElementById(`view-${currentMenu}`);
+        const newView = document.getElementById(`view-${menuKey}`);
+
+        if (oldView) {
+          oldView.classList.remove('active-view');
+          oldView.classList.add('exit-view');
+          setTimeout(() => oldView.classList.remove('exit-view'), 380);
+        }
+
+        if (newView) {
+          newView.scrollTop = 0;
+          updateScrollProgress(newView);
+          newView.classList.remove('exit-view');
+          newView.classList.add('active-view');
+        }
+
+        currentMenu = menuKey;
+      }
+
+      // Re-trigger number count-up if returning to Dashboard
+      if (menuKey === 'dashboard') {
+        animateDashboardCounters();
+      }
+    }
+
+    function updateSidebarGlider(activeBtn) {
+      const container = document.getElementById('sidebarNavContainer');
+      const glider = document.getElementById('navGlider');
+      if (!container || !glider || !activeBtn) return;
+
+      const containerRect = container.getBoundingClientRect();
+      const btnRect = activeBtn.getBoundingClientRect();
+      const offsetY = btnRect.top - containerRect.top;
+      glider.style.transform = `translateY(${offsetY}px)`;
+    }
+
+    // Update Scroll Progress Bar at top of Center Column
+    function updateScrollProgress(scrollEl) {
+      const bar = document.getElementById('scrollProgressBar');
+      if (!bar || !scrollEl) return;
+      const maxScroll = scrollEl.scrollHeight - scrollEl.clientHeight;
+      if (maxScroll <= 4) {
+        bar.style.width = '0%';
+      } else {
+        const pct = Math.min(100, Math.max(0, (scrollEl.scrollTop / maxScroll) * 100));
+        bar.style.width = `${pct}%`;
+      }
+    }
+
+    // =========================================================
+    // DASHBOARD CHARTS & INTERACTIVE SCRUBBERS
+    // =========================================================
+    function scrubRevenue(dayIdx, dayLabel, amountStr, cx, cy) {
+      const bar = document.getElementById('revHighlightBar');
+      const line = document.getElementById('revHighlightLine');
+      const dot = document.getElementById('revActiveDot');
+      const pill = document.getElementById('revTooltipPill');
+
+      if (!bar || !dot || !pill) return;
+
+      bar.setAttribute('x', cx - 13);
+      bar.setAttribute('y', cy);
+      bar.setAttribute('height', Math.max(15, 125 - cy));
+
+      line.setAttribute('x1', cx);
+      line.setAttribute('x2', cx);
+      line.setAttribute('y1', cy);
+
+      dot.setAttribute('cx', cx);
+      dot.setAttribute('cy', cy);
+
+      const pctLeft = (cx / 340) * 100;
+      pill.style.left = `${pctLeft}%`;
+      pill.style.top = `${Math.max(4, cy - 40)}px`;
+      pill.textContent = amountStr;
+    }
+
+    let showThisWeek = true;
+    let showLastWeek = true;
+    function toggleRevenueSeries(series) {
+      if (series === 'thisWeek') {
+        showThisWeek = !showThisWeek;
+        document.getElementById('thisWeekPath').style.opacity = showThisWeek ? '1' : '0.15';
+      } else {
+        showLastWeek = !showLastWeek;
+        document.getElementById('lastWeekPath').style.opacity = showLastWeek ? '0.75' : '0.1';
+      }
+    }
+
+    function randomizeCustomerGauge() {
+      const pctEl = document.getElementById('customerTotalPct');
+      const options = [37, 48, 64, 72, 37];
+      const current = parseInt(pctEl.textContent, 10);
+      const next = options[(options.indexOf(current) + 1) % options.length] || 37;
+      pctEl.textContent = `${next}%`;
+      showToast(`Customers retention gauge updated to ${next}% Total`);
+    }
+
+    function toggleAllTransactions() {
+      const extras = document.querySelectorAll('.extra-tx');
+      const btn = document.getElementById('viewAllTxBtn');
+      extras.forEach(row => row.classList.toggle('hidden'));
+      const isShowing = !extras[0].classList.contains('hidden');
+      btn.textContent = isShowing ? 'Show Less' : 'View All';
+    }
+
+    // Count-up KPI Numbers
+    function animateDashboardCounters() {
+      const counters = document.querySelectorAll('.count-up');
+      counters.forEach(el => {
+        const target = parseFloat(el.dataset.target);
+        const decimals = parseInt(el.dataset.decimals || '0', 10);
+        const duration = 750;
+        const startTime = performance.now();
+
+        function step(now) {
+          const progress = Math.min(1, (now - startTime) / duration);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          const current = (target * eased).toFixed(decimals);
+          el.textContent = current;
+          if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+      });
+    }
+
+    // =========================================================
+    // RENDER SUBMENU LISTS (Projects, Reports, Products, Chat)
+    // =========================================================
+    function renderProjects(filter = 'all') {
+      const grid = document.getElementById('projectsGrid');
+      if (!grid) return;
+      const list = filter === 'all' ? projectsData : projectsData.filter(p => p.status === filter);
+      grid.innerHTML = list.map(p => `
+        <div class="dash-card p-4 flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${
+                p.status === 'completed' ? 'bg-[#effbe3] text-[#6cc61c]' : 'bg-[#fef9ec] text-[#f5b025]'
+              }">${p.status}</span>
+              <span class="text-[10.5px] font-medium text-gray-400">Due ${p.due}</span>
+            </div>
+            <h4 class="text-[13.5px] font-bold text-[#2b332b]">${p.name}</h4>
+            <p class="text-[11px] text-gray-400 mt-0.5">Assigned to ${p.team}</p>
+          </div>
+          <div class="mt-4">
+            <div class="flex justify-between text-[11px] font-bold mb-1">
+              <span>Progress</span>
+              <span class="text-[#6cc61c]">${p.progress}%</span>
+            </div>
+            <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full bg-[#6cc61c] rounded-full transition-all duration-500" style="width: ${p.progress}%"></div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterProjects(filter, btnEl) {
+      document.querySelectorAll('.proj-filter-btn').forEach(b => {
+        b.className = 'proj-filter-btn px-3.5 py-1.5 rounded-xl text-[11.5px] font-semibold text-gray-500 hover:bg-gray-100 transition';
+      });
+      btnEl.className = 'proj-filter-btn px-3.5 py-1.5 rounded-xl text-[11.5px] font-bold bg-[#6cc61c] text-white transition';
+      renderProjects(filter);
+    }
+
+    function openNewProjectModal() {
+      projectsData.unshift({
+        id: Date.now(),
+        name: `New Q2 Growth Sprint #${projectsData.length + 1}`,
+        team: 'Core Product Team',
+        progress: 25,
+        status: 'active',
+        due: 'Jun 15, 2022'
+      });
+      renderProjects('all');
+      showToast('Created new project in active sprint!');
+    }
+
+    function renderReports() {
+      const container = document.getElementById('reportsListContainer');
+      if (!container) return;
+      container.innerHTML = reportsData.map(r => `
+        <div class="p-3.5 rounded-2xl bg-[#f8faf7] hover:bg-[#effbe3]/60 transition flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-white text-[#6cc61c] flex items-center justify-center shadow-xs">
+              <i class="fa-solid fa-file-arrow-down"></i>
+            </div>
+            <div>
+              <p class="text-[12.5px] font-bold text-[#2b332b]">${r.title}</p>
+              <p class="text-[10.5px] text-gray-400">${r.type} • Generated ${r.date}</p>
+            </div>
+          </div>
+          <button onclick="showToast('Downloading ${r.title}...')" class="px-3.5 py-1.5 rounded-xl bg-white hover:bg-[#6cc61c] hover:text-white text-[#2b332b] text-[11px] font-bold shadow-xs transition">
+            Download
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function generateCustomReport() {
+      const period = document.getElementById('reportPeriodSelect').value;
+      reportsData.unshift({
+        id: 'REP-NEW',
+        title: `Custom Statement — ${period}`,
+        type: 'PDF • 1.9 MB',
+        date: 'Just now'
+      });
+      renderReports();
+      showToast(`Generated ${period} financial report!`);
+    }
+
+    function renderProducts() {
+      const tbody = document.getElementById('productsTableBody');
+      const badge = document.getElementById('productCountBadge');
+      if (!tbody) return;
+      if (badge) badge.textContent = productsData.length;
+      tbody.innerHTML = productsData.map(item => `
+        <div class="grid grid-cols-12 items-center py-3 hover:bg-gray-50/80 rounded-xl px-1 transition">
+          <div class="col-span-5 flex items-center gap-2.5 font-bold text-[#2b332b]">
+            <span class="w-7 h-7 rounded-lg bg-[#effbe3] text-[#6cc61c] flex items-center justify-center text-xs">
+              <i class="fa-solid fa-cube"></i>
+            </span>
+            ${item.name}
+          </div>
+          <div class="col-span-2 text-gray-400 text-[11.5px]">${item.category}</div>
+          <div class="col-span-2 font-extrabold text-[#2b332b]">${item.price}</div>
+          <div class="col-span-3 text-right">
+            <span class="px-2.5 py-1 rounded-lg bg-[#effbe3] text-[#6cc61c] text-[10.5px] font-bold">${item.stock}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderChat() {
+      const contactsEl = document.getElementById('chatContactsList');
+      const messagesEl = document.getElementById('chatMessagesBox');
+      const nameEl = document.getElementById('activeChatName');
+      const avatarEl = document.getElementById('activeChatAvatar');
+
+      if (!contactsEl || !messagesEl) return;
+
+      contactsEl.innerHTML = chatThreads.map((t, idx) => `
+        <button onclick="selectChatThread(${idx})" class="w-full p-3.5 text-left flex items-start gap-2.5 hover:bg-[#effbe3]/40 transition ${
+          idx === activeChatIndex ? 'bg-[#effbe3]/70 border-r-3 border-[#6cc61c]' : ''
+        }">
+          <div class="w-8 h-8 rounded-full bg-[#313931] text-white font-bold text-[11px] flex items-center justify-center shrink-0">
+            ${t.initials}
+          </div>
+          <div class="min-w-0 flex-1">
+            <p class="text-[12px] font-bold text-[#2b332b] truncate">${t.name}</p>
+            <p class="text-[10.5px] text-gray-400 truncate mt-0.5">${t.preview}</p>
+          </div>
+        </button>
+      `).join('');
+
+      const active = chatThreads[activeChatIndex];
+      nameEl.textContent = active.name;
+      avatarEl.textContent = active.initials;
+
+      messagesEl.innerHTML = active.messages.map(m => `
+        <div class="flex ${m.sender === 'me' ? 'justify-end' : 'justify-start'}">
+          <div class="max-w-[78%] px-3.5 py-2.5 rounded-2xl text-[12px] ${
+            m.sender === 'me'
+              ? 'bg-[#6cc61c] text-white rounded-br-xs shadow-xs'
+              : 'bg-white text-[#2b332b] rounded-bl-xs shadow-xs border border-gray-100'
+          }">
+            <p>${m.text}</p>
+            <span class="block text-[9.5px] mt-1 opacity-75 text-right">${m.time}</span>
+          </div>
+        </div>
+      `).join('');
+
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function selectChatThread(idx) {
+      activeChatIndex = idx;
+      renderChat();
+    }
+
+    function sendChatMessage(e) {
+      e.preventDefault();
+      const input = document.getElementById('chatInputField');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const active = chatThreads[activeChatIndex];
+      active.messages.push({ sender: 'me', text, time: 'Just now' });
+      active.preview = text;
+      input.value = '';
+      renderChat();
+
+      // Simulated Instant Customer Reply
+      setTimeout(() => {
+        active.messages.push({
+          sender: 'them',
+          text: 'Thank you so much for the fast update! Creativilo support is the best 🙌',
+          time: 'Just now'
+        });
+        renderChat();
+      }, 950);
+    }
+
+    // =========================================================
+    // RIGHT PROFILE PANEL & INTERACTIVE TASK BAR
+    // =========================================================
+    function renderTaskSegments() {
+      const bar = document.getElementById('taskSegmentsBar');
+      const label = document.getElementById('taskCounterLabel');
+      const logoutSummary = document.getElementById('logoutTaskSummary');
+      if (!bar) return;
+
+      label.textContent = `${completedTasks} from 8 tasks completed`;
+      if (logoutSummary) logoutSummary.textContent = `${completedTasks} of 8 tasks`;
+
+      let html = '';
+      for (let i = 1; i <= 8; i++) {
+        const isDone = i <= completedTasks;
+        html += `
+          <button
+            onclick="setTaskCount(${i})"
+            class="h-[5.5px] rounded-full transition-all duration-300 cursor-pointer hover:scale-y-150 ${
+              isDone ? 'bg-[#6cc61c] shadow-[0_0_8px_rgba(108,198,28,0.5)]' : 'bg-[#465046]'
+            }"
+            title="Set ${i} of 8 tasks completed"
+          ></button>
+        `;
+      }
+      bar.innerHTML = html;
+    }
+
+    function setTaskCount(count) {
+      completedTasks = count;
+      renderTaskSegments();
+      showToast(`Updated daily progress: ${count} from 8 tasks completed!`);
+    }
+
+    function toggleNotifPopover() {
+      document.getElementById('notifPopover').classList.toggle('hidden');
+    }
+
+    function toggleStoreMaintenance() {
+      storeOnline = !storeOnline;
+      const badge = document.getElementById('storeStatusBadge');
+      const btn = document.getElementById('maintenanceBtn');
+      if (storeOnline) {
+        badge.textContent = 'ONLINE';
+        badge.className = 'px-2.5 py-0.5 rounded-full bg-white text-[#56a710] text-[10px] font-extrabold';
+        btn.textContent = 'Switch to Maintenance Mode';
+        showToast('Storefront is now LIVE and accepting orders!');
+      } else {
+        badge.textContent = 'MAINTENANCE';
+        badge.className = 'px-2.5 py-0.5 rounded-full bg-amber-300 text-amber-950 text-[10px] font-extrabold';
+        btn.textContent = 'Bring Store Back Online';
+        showToast('Storefront switched to scheduled Maintenance Mode.');
+      }
+    }
+
+    // =========================================================
+    // MODALS & GLOBAL SEARCH
+    // =========================================================
+    function closeModals() {
+      document.getElementById('modalBackdrop').classList.add('hidden');
+      document.getElementById('editProfileModal').classList.add('hidden');
+      document.getElementById('withdrawModal').classList.add('hidden');
+      document.getElementById('addProductModal').classList.add('hidden');
+    }
+
+    function openEditProfileModal() {
+      closeModals();
+      document.getElementById('editTasksInput').value = completedTasks;
+      document.getElementById('modalBackdrop').classList.remove('hidden');
+      document.getElementById('editProfileModal').classList.remove('hidden');
+    }
+
+    function saveProfileChanges(e) {
+      e.preventDefault();
+      const newName = document.getElementById('editNameInput').value.trim() || 'John Doe';
+      const newTasks = Math.min(8, Math.max(0, parseInt(document.getElementById('editTasksInput').value, 10) || 5));
+
+      document.querySelectorAll('.profile-name-sync').forEach(el => el.textContent = newName);
+      completedTasks = newTasks;
+      renderTaskSegments();
+      closeModals();
+      showToast(`Profile updated for ${newName}!`);
+    }
+
+    function openWithdrawModal() {
+      closeModals();
+      document.getElementById('modalAvailBalance').textContent = `$${earningBalance.toLocaleString()}`;
+      document.getElementById('modalBackdrop').classList.remove('hidden');
+      document.getElementById('withdrawModal').classList.remove('hidden');
+    }
+
+    function confirmWithdrawal(e) {
+      e.preventDefault();
+      const amount = parseInt(document.getElementById('withdrawAmountInput').value, 10) || 0;
+      if (amount <= 0 || amount > earningBalance) {
+        showToast('Please enter a valid amount within your available balance.');
+        return;
+      }
+      earningBalance -= amount;
+      document.getElementById('earningBalanceText').textContent = `$${earningBalance.toLocaleString()}`;
+      closeModals();
+      showToast(`Successfully withdrawn $${amount.toLocaleString()} to your bank account!`);
+    }
+
+    function openAddProductModal() {
+      closeModals();
+      document.getElementById('modalBackdrop').classList.remove('hidden');
+      document.getElementById('addProductModal').classList.remove('hidden');
+    }
+
+    function saveNewProduct(e) {
+      e.preventDefault();
+      const name = document.getElementById('newProdTitle').value.trim();
+      const category = document.getElementById('newProdCategory').value.trim();
+      const price = parseFloat(document.getElementById('newProdPrice').value || '99').toFixed(2);
+      productsData.unshift({
+        name,
+        category,
+        price: `$${price}`,
+        stock: '100 in stock'
+      });
+      renderProducts();
+      closeModals();
+      showToast(`Added "${name}" to Store Inventory!`);
+    }
+
+    function triggerSimulatedLogout() {
+      showToast('Session locked securely. Signing back into Dashboard...');
+      setTimeout(() => switchMenu('dashboard'), 1100);
+    }
+
+    // Instant Search Bar Handler
+    function handleGlobalSearch(query) {
+      const dropdown = document.getElementById('searchDropdown');
+      const listEl = document.getElementById('searchResultsList');
+      const q = query.trim().toLowerCase();
+
+      if (!q) {
+        dropdown.classList.add('hidden');
+        return;
+      }
+
+      const items = [
+        { label: 'Dashboard — Revenue & Recent Transactions', menu: 'dashboard' },
+        { label: 'Projects — Active Sprints & Roadmap', menu: 'projects' },
+        { label: 'Analytics — Conversion Funnel & Traffic', menu: 'analytics' },
+        { label: 'Reports — Monthly PDF & Tax Statements', menu: 'reports' },
+        { label: 'Store — Stripe & PayPal Gateways', menu: 'store' },
+        { label: 'Outlet — Manhattan & Westside Branches', menu: 'outlet' },
+        { label: 'Products — AirPulse Pro Max & Smart Watch', menu: 'products' },
+        { label: 'Chat — Customer Support Messages', menu: 'chat' }
+      ].filter(i => i.label.toLowerCase().includes(q));
+
+      if (items.length === 0) {
+        listEl.innerHTML = `<div class="p-2 text-[11px] text-gray-400">No matching menus or items found.</div>`;
+      } else {
+        listEl.innerHTML = items.map(i => `
+          <button onclick="switchMenu('${i.menu}'); document.getElementById('searchDropdown').classList.add('hidden');" class="w-full text-left p-2 hover:bg-[#effbe3] rounded-xl text-[11.5px] font-semibold text-[#2b332b] flex items-center justify-between transition">
+            <span>${i.label}</span>
+            <i class="fa-solid fa-arrow-right text-[10px] text-[#6cc61c]"></i>
+          </button>
+        `).join('');
+      }
+      dropdown.classList.remove('hidden');
+    }
+
+    // Toast Notification Helper
+    let toastTimer = null;
+    function showToast(message) {
+      const box = document.getElementById('toastBox');
+      const text = document.getElementById('toastText');
+      if (!box || !text) return;
+      text.textContent = message;
+      box.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        box.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+      }, 2800);
+    }
+
+    // Initialize Everything on Window Load
+    window.onload = function () {
+      renderTaskSegments();
+      renderProjects('all');
+      renderReports();
+      renderProducts();
+      renderChat();
+      animateDashboardCounters();
+
+      const activeBtn = document.querySelector('.nav-btn.active');
+      if (activeBtn) updateSidebarGlider(activeBtn);
+    };
+  </script>
+</body>
+</html>
